@@ -6,8 +6,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#050816",
-        secondary: "#cbd5e1",
+        primary: "#FFD254",
+        secondary: "#E3E3E3",
         tertiary: "#151030",
         "black-100": "#333333",
         "black-200": "#C0C0C0",
@@ -17,8 +17,11 @@ module.exports = {
         card: "0px 35px 120px -15px #211e35",
       },
       screens: {
-        xs: "450px",
+        xs: "560px",
         md: "892px",
+        lg: "1024px",
+        xl: "1430px",
+        "2xl": "1536px",
       },
     },
   },
