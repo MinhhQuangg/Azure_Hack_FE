@@ -7,8 +7,6 @@ import { sections2 } from "../constants/index.js";
 import { styles } from "../styles";
 
 const NavBar2 = () => {
-  console.log(window.location.pathname);
-
   const [active, setActive] = useState(
     window.location.pathname === "/" || window.location.pathname === "/home"
       ? "Home"
