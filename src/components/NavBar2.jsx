@@ -7,7 +7,13 @@ import { sections2 } from "../constants/index.js";
 import { styles } from "../styles";
 
 const NavBar2 = () => {
-  const [active, setActive] = useState("Home");
+  console.log(window.location.pathname);
+
+  const [active, setActive] = useState(
+    window.location.pathname === "/" || window.location.pathname === "/home"
+      ? "Home"
+      : ""
+  );
   const [toggle, setToggle] = useState(false);
   const navigate = useNavigate();
 
@@ -23,7 +29,7 @@ const NavBar2 = () => {
       <div className="w-full h-[100%] flex justify-between items-center">
         <Link
           to="/"
-          className="flex items-center gap-2 md:w-[30%]"
+          className="flex items-center gap-2 sm:w-[30%]"
           onClick={() => {
             setActive("Home");
             window.scrollTo(0, 0);
