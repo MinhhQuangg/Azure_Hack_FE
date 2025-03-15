@@ -12,6 +12,7 @@ const NavBar2 = () => {
       ? "Home"
       : ""
   );
+  
   const [toggle, setToggle] = useState(false);
   const navigate = useNavigate();
 
