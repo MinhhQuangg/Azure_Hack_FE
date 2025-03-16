@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { chatlas, logo, visibility, visibilityOff } from "../assets";
+import { chatlas, logo } from "../assets";
 import { showToastError } from "../components/common/ShowToast";
 import { styles } from "../styles";
+import visibility from "../assets/eye-solid.svg";
+import visibilityOff from "../assets/eye-slash-solid.svg";
 
 const Signup2 = () => {
   const formContext = useForm();
@@ -137,12 +139,21 @@ const Signup2 = () => {
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute top-3 right-2"
+                className="absolute top-[50%] right-7"
+                style={{ transform: "translate(50%, -50%)" }}
               >
                 {showPassword ? (
-                  <img src={visibility} alt="invisible" className="w-5 h-5" />
+                  <img
+                    src={visibility}
+                    alt="invisible"
+                    className="w-auto h-6"
+                  />
                 ) : (
-                  <img src={visibilityOff} alt="visible" className="w-5 h-5" />
+                  <img
+                    src={visibilityOff}
+                    alt="visible"
+                    className="w-auto h-6"
+                  />
                 )}
               </button>
             </div>
