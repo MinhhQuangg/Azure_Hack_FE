@@ -100,7 +100,7 @@ export const Signin2 = () => {
         </div>
       </div>
       <div className="w-[80%] max-w-[500px]">
-        <div className={`flex flex-col items-center justify-center`}>
+        <div className={`flex flex-col items-center justify-center mt-2`}>
           <h2 className="font-['Montserrat'] text-[2rem] lg:text-[3rem] font-bold">SIGN IN</h2>
           <p className={`font-['Inter'] lg:text-[1.35rem]`}>Welcome back!</p>
         </div>

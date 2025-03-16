@@ -12,6 +12,7 @@ import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import ErrorPage2 from "../pages/Error2";
 import Signin2 from "../pages/Signin2";
+import Signup2 from "../pages/Signup2";
 
 export const Routes = () => {
   return (
@@ -23,7 +24,8 @@ export const Routes = () => {
         <Route path="/Home" element={<Home2 />} />
         {/* <Route path="/Signin" element={<Signin />} /> */}
         <Route path="/Signin" element={<Signin2 />} />
-        <Route path="/Signup" element={<Signup />} />
+        {/* <Route path="/Signup" element={<Signup />} /> */}
+        <Route path="/Signup" element={<Signup2 />} />
         {/* <Route path="*" element={<Error />} /> */}
         <Route path="*" element={<ErrorPage2 />} />
       </RouteComponent>
