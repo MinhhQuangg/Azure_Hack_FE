@@ -66,7 +66,7 @@ const NavBar2 = () => {
               <a
                 className="w-[100%] h-[100%] flex justify-center items-center"
                 style={linkFontSize}
-                href={`#${link.id}`}
+                href={`/${link.id}`}
               >
                 {link.title}
               </a>
