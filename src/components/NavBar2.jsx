@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { logo, chatlas } from "../assets";
 import menu from "../assets/menu_blue.svg";
 import close from "../assets/close_blue.svg";
-import { sections2 } from "../constants/index.js";
+import { sections } from "../constants/index.js";
 import { styles } from "../styles";
 
 const NavBar2 = () => {
@@ -12,7 +12,7 @@ const NavBar2 = () => {
       ? "Home"
       : ""
   );
-  
+
   const [toggle, setToggle] = useState(false);
   const navigate = useNavigate();
 
@@ -51,7 +51,7 @@ const NavBar2 = () => {
         </Link>
 
         <ul className="list-none hidden sm:flex flex-row min-w-[30%] max-w-[35%] h-[100%] justify-center items-center font-['Montserrat']">
-          {sections2.map((link) => (
+          {sections.map((link) => (
             <li
               key={link.id}
               className={`${
@@ -73,10 +73,9 @@ const NavBar2 = () => {
         <div className="hidden sm:flex w-[30%] justify-end items-center">
           <button
             type="submit"
-            className="bg-[#E3E3E3] hover:bg-white py-1 px-5 rounded-full text-lg font-['Montserrat'] font-[500]"
+            className="bg-[#E3E3E3] hover:bg-white py-1 px-5 rounded-full text-lg font-['Montserrat'] font-[500] text-[1.25rem]"
             style={{
               ...buttonShadow,
-              fontSize: "1.25rem",
             }}
             onClick={() => navigate("/signin")}
           >
@@ -99,7 +98,7 @@ const NavBar2 = () => {
             style={buttonShadow}
           >
             <ul className="list-none flex justify-end items-start flex-col gap-4 font-['Montserrat'] font-semibold">
-              {sections2.map((link) => (
+              {sections.map((link) => (
                 <li
                   key={link.id}
                   className="cursor-pointer hover:underline"
