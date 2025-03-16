@@ -50,9 +50,18 @@ const MessageBubble = ({ message }) => {
         )}
         <div className="bg-gray-200 rounded-lg p-3 inline-block max-w-md">
           <div className="flex space-x-1">
-            <div className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"></div>
-            <div className="h-2 w-2 bg-gray-500 rounded-full animate-pulse delay-75"></div>
-            <div className="h-2 w-2 bg-gray-500 rounded-full animate-pulse delay-150"></div>
+            <div
+              className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
+              style={{ animationDelay: "0ms" }}
+            ></div>
+            <div
+              className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
+              style={{ animationDelay: "75ms" }}
+            ></div>
+            <div
+              className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
+              style={{ animationDelay: "150ms" }}
+            ></div>
           </div>
           <div className="text-xs text-gray-500 mt-1">Person is typing...</div>
         </div>
