@@ -8,8 +8,12 @@ import { styles } from "../styles";
 
 const NavBar2 = () => {
   const [active, setActive] = useState(
-    window.location.pathname === "/" || window.location.pathname === "/home"
+    window.location.pathname === "/" || window.location.pathname === "/Home"
       ? "Home"
+      : window.location.pathname === "/Chat"
+      ? "Chat"
+      : window.location.pathname === "/Help"
+      ? "Help"
       : ""
   );
 
