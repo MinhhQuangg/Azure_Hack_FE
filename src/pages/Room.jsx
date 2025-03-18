@@ -5,6 +5,7 @@ import ChatWindow from "../components/chatroom/ChatWindow.jsx";
 import { CHATS_DATA, MESSAGES_DATA } from "../components/chatroom/Data.jsx";
 import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
+import { FaTimes } from "react-icons/fa";
 
 const EmptyState = () => {
   return (
@@ -56,33 +57,33 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg">
-        <div className="p-4 border-b flex justify-between items-center">
+        <div className="font-['Montserrat'] p-4 border-b flex justify-between items-center relative">
           <h2 className="text-xl font-bold">New Chat</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
           >
-            &times;
+            <FaTimes size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4">
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
               Chat Name
             </label>
             <input
               type="text"
               value={chatName}
               onChange={(e) => setChatName(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
               placeholder="Enter chat name"
               required
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
               Add Users
             </label>
             <div className="max-h-40 overflow-y-auto border rounded p-2">
@@ -109,7 +110,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
                     className="flex items-center cursor-pointer"
                   >
                     <Avatar color={user.color} text={user.avatar} size="sm" />
-                    <span className="ml-2">{user.name}</span>
+                    <span className="font-['Inter'] ml-2">{user.name}</span>
                   </label>
                 </div>
               ))}
