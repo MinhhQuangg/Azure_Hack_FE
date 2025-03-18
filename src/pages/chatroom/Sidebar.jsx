@@ -33,7 +33,7 @@ const Sidebar = ({
           <input
             type="text"
             placeholder="Search"
-            className="bg-transparent outline-none w-full placeholder-[#65686C]"
+            className="font-['Inter'] bg-transparent outline-none w-full placeholder-[#65686C]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -70,10 +70,10 @@ const Sidebar = ({
               <Avatar color={chat.avatarColor} text={chat.avatarText} />
               <div className="ml-3 flex-1">
                 <div className="flex justify-between">
-                  <span className="font-semibold">{chat.name}</span>
-                  <span className="text-gray-500 text-xs">{chat.time}</span>
+                  <span className="font-['Montserrat'] font-semibold">{chat.name}</span>
+                  <span className="font-['Inter'] text-[#989898] text-xs">{chat.time}</span>
                 </div>
-                <p className="text-gray-600 text-sm truncate">
+                <p className="font-['Inter'] text-[#65686C] text-sm truncate">
                   {chat.lastMessage}
                 </p>
               </div>

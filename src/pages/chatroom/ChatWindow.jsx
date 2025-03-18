@@ -43,100 +43,103 @@ const MessageBubble = ({ message }) => {
               style={{ animationDelay: "150ms" }}
             ></div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">Person is typing...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (message.fileUrl) {
-    return (
-      <div
-        className={`flex mb-4 ${
-          message.fromUser ? "justify-end" : "justify-start"
-        }`}
-      >
-        {!message.fromUser && (
-          <div className="mr-2">
-            <Avatar
-              color={message.senderColor}
-              text={message.sender}
-              size="sm"
-            />
-          </div>
-        )}
-        <div
-          className={`rounded-lg p-3 inline-block max-w-md ${
-            message.fromUser
-              ? "bg-yellow-300 text-black"
-              : "bg-gray-200 text-black"
-          }`}
-        >
-          <div className="flex items-center">
-            <FaPaperclip className="mr-2" />
-            <a
-              href={message.fileUrl}
-              download={message.fileName}
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              {message.fileName || "Download file"}
-            </a>
-          </div>
-          {message.content && <div className="mt-2">{message.content}</div>}
-          <div className="text-xs text-gray-600 mt-1 text-right">
-            {message.timestamp
-              ? new Date(message.timestamp).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : ""}
+          <div className="font-['Inter'] text-xs text-[#65686C] mt-1">
+            Person is typing...
           </div>
         </div>
       </div>
     );
   }
 
-  if (message.imageUrl) {
-    return (
-      <div
-        className={`flex mb-4 ${
-          message.fromUser ? "justify-end" : "justify-start"
-        }`}
-      >
-        {!message.fromUser && (
-          <div className="mr-2">
-            <Avatar
-              color={message.senderColor}
-              text={message.sender}
-              size="sm"
-            />
-          </div>
-        )}
-        <div
-          className={`rounded-lg p-3 inline-block max-w-md ${
-            message.fromUser
-              ? "bg-yellow-300 text-black"
-              : "bg-gray-200 text-black"
-          }`}
-        >
-          <img
-            src={message.imageUrl}
-            alt="Shared image"
-            className="max-w-full rounded-md"
-          />
-          {message.content && <div className="mt-2">{message.content}</div>}
-          <div className="text-xs text-gray-600 mt-1 text-right">
-            {message.timestamp
-              ? new Date(message.timestamp).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : ""}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (message.fileUrl) {
+  //   return (
+  //     <div
+  //       className={`flex mb-4 ${
+  //         message.fromUser ? "justify-end" : "justify-start"
+  //       }`}
+  //     >
+  //       {!message.fromUser && (
+  //         <div className="mr-2">
+  //           <Avatar
+  //             color={message.senderColor}
+  //             text={message.sender}
+  //             size="sm"
+  //           />
+  //         </div>
+  //       )}
+
+  //       <div
+  //         className={`rounded-lg p-3 inline-block max-w-md ${
+  //           message.fromUser
+  //             ? "bg-yellow-300 text-black"
+  //             : "bg-gray-200 text-black"
+  //         }`}
+  //       >
+  //         <div className="flex items-center">
+  //           <FaPaperclip className="mr-2" />
+  //           <a
+  //             href={message.fileUrl}
+  //             download={message.fileName}
+  //             className="text-blue-600 underline hover:text-blue-800"
+  //           >
+  //             {message.fileName || "Download file"}
+  //           </a>
+  //         </div>
+  //         {message.content && <div className="mt-2">{message.content}</div>}
+  //         <div className="text-xs text-gray-600 mt-1 text-right">
+  //           {message.timestamp
+  //             ? new Date(message.timestamp).toLocaleTimeString([], {
+  //                 hour: "2-digit",
+  //                 minute: "2-digit",
+  //               })
+  //             : ""}
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  // if (message.imageUrl) {
+  //   return (
+  //     <div
+  //       className={`flex mb-4 ${
+  //         message.fromUser ? "justify-end" : "justify-start"
+  //       }`}
+  //     >
+  //       {!message.fromUser && (
+  //         <div className="mr-2">
+  //           <Avatar
+  //             color={message.senderColor}
+  //             text={message.sender}
+  //             size="sm"
+  //           />
+  //         </div>
+  //       )}
+  //       <div
+  //         className={`rounded-lg p-3 inline-block max-w-md ${
+  //           message.fromUser
+  //             ? "bg-yellow-300 text-black"
+  //             : "bg-gray-200 text-black"
+  //         }`}
+  //       >
+  //         <img
+  //           src={message.imageUrl}
+  //           alt="Shared image"
+  //           className="max-w-full rounded-md"
+  //         />
+  //         {message.content && <div className="mt-2">{message.content}</div>}
+  //         <div className="text-xs text-gray-600 mt-1 text-right">
+  //           {message.timestamp
+  //             ? new Date(message.timestamp).toLocaleTimeString([], {
+  //                 hour: "2-digit",
+  //                 minute: "2-digit",
+  //               })
+  //             : ""}
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div
@@ -149,21 +152,26 @@ const MessageBubble = ({ message }) => {
           <Avatar color={message.senderColor} text={message.sender} size="sm" />
         </div>
       )}
-      <div
-        className={`rounded-lg p-3 inline-block max-w-md ${
-          message.fromUser
-            ? "bg-yellow-300 text-black"
-            : "bg-gray-200 text-black"
-        }`}
-      >
-        {message.content}
-        <div className="text-xs text-gray-600 mt-1 text-right">
-          {message.timestamp
-            ? new Date(message.timestamp).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : ""}
+      <div>
+        <div className="font-['Inter'] text-xs text-[#65686C]">
+          {message.sender}
+        </div>
+        <div
+          className={`font-['Inter'] rounded-lg p-3 inline-block max-w-md ${
+            message.fromUser
+              ? "bg-yellow-300 text-black"
+              : "bg-gray-200 text-black"
+          }`}
+        >
+          {message.content}
+          <div className="font-['Inter'] text-xs text-[#65686C] mt-1 text-right">
+            {message.timestamp
+              ? new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : ""}
+          </div>
         </div>
       </div>
     </div>
@@ -237,8 +245,12 @@ const ChatWindow = ({
             text={currentChat.avatarText}
           />
           <div className="ml-3">
-            <h2 className="font-semibold">{currentChat.name}</h2>
-            <p className="text-xs text-gray-500">{currentChat.info || ""}</p>
+            <h2 className="font-['Montserrat'] font-bold text-[1.35rem]">
+              {currentChat.name}
+            </h2>
+            <p className="font-['Inter'] text-xs text-gray-500">
+              {currentChat.info || ""}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -247,7 +259,7 @@ const ChatWindow = ({
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="font-['Inter'] w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
             >
               <option>English</option>
               <option>Spanish</option>
@@ -285,18 +297,18 @@ const ChatWindow = ({
 
       <div className="p-4 bg-white border-t flex items-center">
         <IconButton
-          icon={<FaPaperclip />}
+          icon={<FaPaperclip color="#081C48" />}
           className="hidden sm:block"
           onClick={handleFileButtonClick}
         />
         <IconButton
-          icon={<FaImage />}
+          icon={<FaImage color="#081C48" />}
           className="hidden sm:block"
           onClick={handleImageButtonClick}
         />
         <div className="flex-1 mx-2">
           <textarea
-            className="border rounded-lg p-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className="font-['Inter'] placeholder-[#65686C] border rounded-lg p-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300"
             placeholder="Type a message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
@@ -305,8 +317,7 @@ const ChatWindow = ({
           />
         </div>
         <IconButton
-          icon={<FaPaperPlane />}
-          color={newMessage.trim() ? "text-yellow-500" : "text-gray-400"}
+          icon={<FaPaperPlane color="#081C48" />}
           onClick={onSendMessage}
         />
       </div>

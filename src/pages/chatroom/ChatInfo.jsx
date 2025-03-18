@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { styles } from "../../styles";
-import { IconButton } from "./ReusableComponents";
+import Avatar, { IconButton } from "./ReusableComponents";
 import {
   FaGlobe,
   FaEdit,
@@ -12,6 +12,10 @@ import {
   FaUserPlus,
   FaUserShield,
 } from "react-icons/fa";
+import {
+  showToastError,
+  showToastSuccess,
+} from "../../components/common/ShowToast";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -50,33 +54,33 @@ const ActionButton = ({ onClick, primary, children, className }) => (
 
 const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   const { id, name, isOnline, isAdmin: memberIsAdmin, avatarColor } = member;
+
   const isCurrentUser = id === currentUserId;
 
   return (
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center">
-        <div
-          className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
-            isOnline ? "bg-green-400" : "bg-gray-200"
-          }`}
-          style={avatarColor ? { backgroundColor: avatarColor } : {}}
-        >
-          {!avatarColor && name.charAt(0).toUpperCase()}
-        </div>
-        <span className="ml-2">
+        <Avatar
+          color={avatarColor}
+          text={name.charAt(0).toUpperCase()}
+          size="sm"
+        />
+        <span className="font-['Inter'] ml-2">
           {name}
           {isCurrentUser ? " (You)" : ""}
         </span>
       </div>
       {isCurrentUser ? (
-        <span className="text-xs text-gray-500">
+        <span className="font-['Inter'] text-xs text-gray-500">
           {memberIsAdmin ? "Admin" : ""}
         </span>
       ) : (
         <>
           {memberIsAdmin ? (
             <div className="flex items-center">
-              <span className="text-xs text-gray-500 mr-2">Admin</span>
+              <span className="font-['Inter'] text-xs text-gray-500 mr-2">
+                Admin
+              </span>
               <button
                 className="text-gray-500"
                 onClick={() => onUserInfoClick(member)}
@@ -125,13 +129,14 @@ const ChatInfo = ({ groupId }) => {
                 name: "User123",
                 isAdmin: true,
                 isOnline: true,
+                avatarColor: "bg-[#25A59F]",
               },
               {
                 id: "person-1",
                 name: "Person 1",
                 isAdmin: false,
                 isOnline: true,
-                avatarColor: "#4ade80",
+                avatarColor: "bg-[#A4F2FA]",
               },
             ],
             joinRequests: [
@@ -139,7 +144,7 @@ const ChatInfo = ({ groupId }) => {
                 id: "person-2",
                 name: "Person 2",
                 requestedAt: "2025-03-15T09:45:00Z",
-                avatarColor: "#93c5fd",
+                avatarColor: "bg-[#93c5fd]",
               },
             ],
           };
@@ -164,6 +169,7 @@ const ChatInfo = ({ groupId }) => {
   const handleLeaveGroup = async () => {
     try {
       console.log("Left group", groupId);
+      showToastSuccess(`Left group successfully`);
       setIsLeaveModalOpen(false);
     } catch (err) {
       console.error("Failed to leave group", err);
@@ -232,7 +238,7 @@ const ChatInfo = ({ groupId }) => {
       navigator.clipboard
         .writeText(groupData.inviteLink)
         .then(() => {
-          console.log("Copied to clipboard");
+          showToastSuccess("Copied to clipboard");
         })
         .catch((err) => {
           console.error("Failed to copy", err);
@@ -284,7 +290,9 @@ const ChatInfo = ({ groupId }) => {
       className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white`}
     >
       <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-2xl font-bold">{groupData?.name}</h2>
+        <h2 className="font-['Montserrat'] text-2xl font-bold">
+          {groupData?.name}
+        </h2>
         {isCurrentUserAdmin && (
           <button className="text-gray-500">
             <FaEdit size={16} />
@@ -297,7 +305,7 @@ const ChatInfo = ({ groupId }) => {
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          className="font-['Inter'] w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
         >
           <option>English</option>
           <option>Spanish</option>
@@ -307,12 +315,14 @@ const ChatInfo = ({ groupId }) => {
       </div>
 
       <div className="p-4 border-b">
-        <h3 className="text-gray-600 mb-1">Created</h3>
-        <p className="text-sm">{formatDate(groupData?.createdAt)}</p>
+        <h3 className="font-['Montserrat'] font-bold mb-1">Created</h3>
+        <p className="font-['Inter'] text-sm">
+          {formatDate(groupData?.createdAt)}
+        </p>
       </div>
 
       <div className="p-4 border-b">
-        <h3 className="text-gray-600 mb-2">
+        <h3 className="font-['Montserrat'] font-bold mb-2">
           Members ({groupData?.members.length})
         </h3>
         {groupData?.members.map((member) => (
@@ -328,7 +338,7 @@ const ChatInfo = ({ groupId }) => {
 
       {isCurrentUserAdmin && joinRequests.length > 0 && (
         <div className="p-4 border-b">
-          <h3 className="text-gray-600 mb-2">
+          <h3 className="font-['Montserrat'] font-bold mb-2">
             Requests ({joinRequests.length})
           </h3>
           {joinRequests.map((request) => (
@@ -337,15 +347,12 @@ const ChatInfo = ({ groupId }) => {
               className="flex items-center justify-between mb-2"
             >
               <div className="flex items-center">
-                <div
-                  className="w-8 h-8 rounded-full bg-blue-200 flex-shrink-0"
-                  style={
-                    request.avatarColor
-                      ? { backgroundColor: request.avatarColor }
-                      : {}
-                  }
-                ></div>
-                <span className="ml-2">{request.name}</span>
+                <Avatar
+                  color={request.avatarColor}
+                  text={request.name.charAt(0).toUpperCase()}
+                  size="sm"
+                />
+                <span className="font-['Inter'] ml-2">{request.name}</span>
               </div>
               <div className="flex">
                 <button
@@ -367,12 +374,10 @@ const ChatInfo = ({ groupId }) => {
       )}
 
       <div className="p-4 border-b">
-        <h3 className="text-gray-600 mb-2">Invite Link</h3>
+        <h3 className="font-['Montserrat'] font-bold mb-2">Invite Link</h3>
         <div className="flex items-center">
-          <p className="text-xs text-gray-500 truncate mr-2">
-            {groupData?.inviteLink}
-          </p>
-          <button className="text-gray-500" onClick={handleCopyInviteLink}>
+          <p className="text-xs truncate mr-2">{groupData?.inviteLink}</p>
+          <button className="text-[#65686C]" onClick={handleCopyInviteLink}>
             <FaCopy size={16} />
           </button>
         </div>

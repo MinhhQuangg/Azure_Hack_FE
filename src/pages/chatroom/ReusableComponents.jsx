@@ -30,7 +30,7 @@ const IconButton = ({ icon, onClick, color = "text-gray-600" }) => {
 const TabButton = ({ text, isActive, onClick }) => {
   return (
     <button
-      className={`px-4 py-1 text-sm font-medium rounded-full ${
+      className={`font-['Montserrat'] px-4 py-1 text-sm font-semibold rounded-full ${
         isActive ? "bg-[#FFD254]" : "bg-white border border-gray-300"
       }`}
       onClick={onClick}
