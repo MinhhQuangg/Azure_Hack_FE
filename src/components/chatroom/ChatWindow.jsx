@@ -229,7 +229,7 @@ const ChatWindow = ({
 
   return (
     <div
-      className={`${styles.paddingY} mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
     >
       <div className="p-4 border-b bg-white flex items-center justify-between">
         <div className="flex items-center">

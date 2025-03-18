@@ -13,10 +13,7 @@ import {
   FaUserShield,
   FaSave,
 } from "react-icons/fa";
-import {
-  showToastError,
-  showToastSuccess,
-} from "../common/ShowToast";
+import { showToastError, showToastSuccess } from "../common/ShowToast";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -300,7 +297,7 @@ const ChatInfo = ({ groupId }) => {
   if (loading) {
     return (
       <div
-        className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
+        className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
       >
         <p>Loading...</p>
       </div>
@@ -310,7 +307,7 @@ const ChatInfo = ({ groupId }) => {
   if (error) {
     return (
       <div
-        className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
+        className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
       >
         <p className="text-red-500">{error}</p>
         <button
@@ -333,7 +330,7 @@ const ChatInfo = ({ groupId }) => {
 
   return (
     <div
-      className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white`}
     >
       <div className="flex items-center justify-between p-4 border-b">
         {isEditingName ? (

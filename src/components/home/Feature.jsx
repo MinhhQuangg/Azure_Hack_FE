@@ -77,7 +77,7 @@ const Feature = () => {
   // Main component return similar to Service2
   return (
     <div
-      className={`${styles.paddingPageX} ${styles.paddingY} flex flex-col lg:gap-14 items-center`}
+      className={`${styles.paddingPageX} xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 flex flex-col lg:gap-14 items-center`}
       style={{
         background:
           "linear-gradient(135deg, #ffd254 0%, #ffd254 40%, #fff48d 46%, #a5d9c7 54%, #25a59f 62%, #25a59f 100%)",

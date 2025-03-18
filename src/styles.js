@@ -1,6 +1,6 @@
 const styles = {
   paddingX: "md:px-10 sm:px-4 px-6",
-  paddingY: "xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6",
+  paddingY: "xl:py-18 lg:py-16 md:py-12 sm:py-8 py-6",
   paddingPageX: "xl:px-28 lg:px-16 md:px-12 sm:px-8 px-4",
   padding: "sm:px-16 px-6 sm:py-16 py-10",
   heroHeaderText:
