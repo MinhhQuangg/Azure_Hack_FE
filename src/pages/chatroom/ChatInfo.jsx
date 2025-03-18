@@ -11,6 +11,7 @@ import {
   FaTimes,
   FaUserPlus,
   FaUserShield,
+  FaSave,
 } from "react-icons/fa";
 import {
   showToastError,
@@ -112,6 +113,8 @@ const ChatInfo = ({ groupId }) => {
   const [error, setError] = useState(null);
   const [joinRequests, setJoinRequests] = useState([]);
   const [currentUserId, setCurrentUserId] = useState("user-123");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -130,6 +133,7 @@ const ChatInfo = ({ groupId }) => {
                 isAdmin: true,
                 isOnline: true,
                 avatarColor: "bg-[#25A59F]",
+                joined: "3-3-2025",
               },
               {
                 id: "person-1",
@@ -137,6 +141,7 @@ const ChatInfo = ({ groupId }) => {
                 isAdmin: false,
                 isOnline: true,
                 avatarColor: "bg-[#A4F2FA]",
+                joined: "3-5-2025",
               },
             ],
             joinRequests: [
@@ -145,11 +150,13 @@ const ChatInfo = ({ groupId }) => {
                 name: "Person 2",
                 requestedAt: "2025-03-15T09:45:00Z",
                 avatarColor: "bg-[#93c5fd]",
+                joined: "",
               },
             ],
           };
 
           setGroupData(mockData);
+          setNewGroupName(mockData.name);
           setJoinRequests(mockData.joinRequests);
           setLoading(false);
         }, 300);
@@ -225,7 +232,10 @@ const ChatInfo = ({ groupId }) => {
         const newMember = joinRequests.find((req) => req.id === requestId);
         setGroupData((prev) => ({
           ...prev,
-          members: [...prev.members, { ...newMember, isAdmin: false }],
+          members: [
+            ...prev.members,
+            { ...newMember, joined: new Date(), isAdmin: false },
+          ],
         }));
       }
     } catch (err) {
@@ -249,6 +259,42 @@ const ChatInfo = ({ groupId }) => {
   const handleUserInfoClick = (user) => {
     setSelectedUser(user);
     setIsUserInfoModalOpen(true);
+  };
+
+  const handleEditNameClick = () => {
+    setIsEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    try {
+      if (!newGroupName.trim()) {
+        showToastError("Group name cannot be empty");
+        return;
+      }
+
+      if (newGroupName.trim() === groupData.name) {
+        setIsEditingName(false);
+        return;
+      }
+
+      console.log("Updated group name to", newGroupName);
+
+      setGroupData((prev) => ({
+        ...prev,
+        name: newGroupName.trim(),
+      }));
+
+      setIsEditingName(false);
+      showToastSuccess("Group name updated successfully");
+    } catch (err) {
+      console.error("Failed to update group name", err);
+      showToastError("Failed to update group name");
+    }
+  };
+
+  const handleCancelNameEdit = () => {
+    setNewGroupName(groupData.name);
+    setIsEditingName(false);
   };
 
   if (loading) {
@@ -290,13 +336,48 @@ const ChatInfo = ({ groupId }) => {
       className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white`}
     >
       <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="font-['Montserrat'] text-2xl font-bold">
-          {groupData?.name}
-        </h2>
-        {isCurrentUserAdmin && (
-          <button className="text-gray-500">
-            <FaEdit size={16} />
-          </button>
+        {isEditingName ? (
+          <div className="flex items-center w-full">
+            <input
+              type="text"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              className="font-['Montserrat'] text-lg font-bold w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              autoFocus
+              maxLength={50}
+            />
+            <div className="flex ml-2">
+              <button
+                className="text-green-500 mr-1"
+                onClick={handleSaveName}
+                title="Save"
+              >
+                <FaCheck size={16} />
+              </button>
+              <button
+                className="text-red-500"
+                onClick={handleCancelNameEdit}
+                title="Cancel"
+              >
+                <FaTimes size={16} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2 className="font-['Montserrat'] text-2xl font-bold">
+              {groupData?.name}
+            </h2>
+            {isCurrentUserAdmin && (
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={handleEditNameClick}
+                title="Edit group name"
+              >
+                <FaEdit size={16} />
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -415,7 +496,7 @@ const ChatInfo = ({ groupId }) => {
       >
         <div className="text-center mb-6">
           <div className="font-medium text-gray-700">Joined</div>
-          <p className="text-gray-600">March 3, 2025</p>
+          <p className="text-gray-600">{formatDate(selectedUser?.joined)}</p>
         </div>
         <div className="flex flex-col gap-5 items-center justify-center w-full">
           {selectedUser?.isAdmin ? (
