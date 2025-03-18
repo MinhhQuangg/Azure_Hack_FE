@@ -16,7 +16,7 @@ const Sidebar = ({
 }) => {
   return (
     <div
-      className={`${styles.paddingY} mt-10 lg:mt-2 w-64 border-r bg-white flex flex-col`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-64 border-r bg-white flex flex-col`}
     >
       {/* Sidebar Header */}
       <div className="p-4 border-b flex justify-between items-center">
