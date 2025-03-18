@@ -31,7 +31,7 @@ const TabButton = ({ text, isActive, onClick }) => {
   return (
     <button
       className={`px-4 py-1 text-sm font-medium rounded-full ${
-        isActive ? "bg-yellow-300" : "bg-white border border-gray-300"
+        isActive ? "bg-[#FFD254]" : "bg-white border border-gray-300"
       }`}
       onClick={onClick}
     >

@@ -15,21 +15,25 @@ const Sidebar = ({
   onNewChat,
 }) => {
   return (
-    <div className={`${styles.paddingY} w-64 border-r bg-white flex flex-col`}>
+    <div
+      className={`${styles.paddingY} mt-10 lg:mt-2 w-64 border-r bg-white flex flex-col`}
+    >
       {/* Sidebar Header */}
       <div className="p-4 border-b flex justify-between items-center">
-        <h1 className="text-xl font-bold">Chats</h1>
+        <h1 className="text-[#081C48] font-['Montserrat'] text-[1.75rem] font-bold">
+          Chats
+        </h1>
         <IconButton icon={<FaCommentDots />} onClick={onNewChat} />
       </div>
 
       {/* Search Bar */}
       <div className="p-4">
-        <div className="bg-gray-200 rounded-full p-2 flex items-center">
-          <FaSearch className="text-gray-500 mx-2" />
+        <div className="bg-[#E8E8E8] rounded-full p-2 flex items-center">
+          <FaSearch className="text-[#65686C] mx-2" />
           <input
             type="text"
             placeholder="Search"
-            className="bg-transparent outline-none w-full"
+            className="bg-transparent outline-none w-full placeholder-[#65686C]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

@@ -6,30 +6,11 @@ import {
   FaPaperclip,
   FaImage,
   FaPaperPlane,
-  FaEllipsisV,
+  FaInfoCircle,
   FaGlobe,
+  FaBars,
 } from "react-icons/fa";
 
-// Placeholder settings
-const Settings = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="mt-6 flex justify-end">
-        <div className="bg-white">Placeholder</div>
-        <button
-          onClick={onClose}
-          className="bg-yellow-300 hover:bg-yellow-400 px-4 py-2 rounded-lg"
-        >
-          Exit
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Message Bubble Component
 const MessageBubble = ({ message }) => {
   // Typing indicator
   if (message.typing) {
@@ -108,8 +89,11 @@ const ChatWindow = ({
   setNewMessage,
   onSendMessage,
   messageContainerRef,
+  toggleSidebar,
+  toggleChatInfo,
+  showSidebar,
+  showChatInfo,
 }) => {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [language, setLanguage] = useState("English");
 
   // Handle Enter key press
@@ -121,10 +105,20 @@ const ChatWindow = ({
   };
 
   return (
-    <div className={`${styles.paddingY} flex-1 flex flex-col bg-gray-50`}>
+    <div
+      className={`${styles.paddingY} mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
+    >
       {/* Chat Header */}
       <div className="p-4 border-b bg-white flex items-center justify-between">
         <div className="flex items-center">
+          {/* Mobile sidebar toggle button */}
+          <button
+            className="md:hidden mr-2 text-gray-600"
+            onClick={toggleSidebar}
+          >
+            <FaBars />
+          </button>
+
           <Avatar
             color={currentChat.avatarColor}
             text={currentChat.avatarText}
@@ -135,9 +129,8 @@ const ChatWindow = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center">
+          <div className="hidden md:flex items-center">
             <IconButton icon={<FaGlobe />} />
-            {/* <span className="text-gray-600 text-sm ml-1">English</span> */}
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
@@ -150,12 +143,9 @@ const ChatWindow = ({
             </select>
           </div>
           <IconButton
-            icon={<FaEllipsisV />}
-            onClick={() => setIsSettingsOpen(true)}
-          />
-          <Settings
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
+            icon={<FaInfoCircle />}
+            onClick={toggleChatInfo}
+            className={showChatInfo ? "bg-gray-200" : ""}
           />
         </div>
       </div>
@@ -169,8 +159,8 @@ const ChatWindow = ({
 
       {/* Input Area */}
       <div className="p-4 bg-white border-t flex items-center">
-        <IconButton icon={<FaPaperclip />} />
-        <IconButton icon={<FaImage />} />
+        <IconButton icon={<FaPaperclip />} className="hidden sm:block" />
+        <IconButton icon={<FaImage />} className="hidden sm:block" />
         <div className="flex-1 mx-2">
           <textarea
             className="border rounded-lg p-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300"

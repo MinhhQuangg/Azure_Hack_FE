@@ -4,6 +4,7 @@ import Avatar from "./ReusableComponents.jsx";
 import Sidebar from "./Sidebar.jsx";
 import ChatWindow from "./ChatWindow.jsx";
 import { CHATS_DATA, MESSAGES_DATA } from "./Data.jsx";
+import ChatInfo from "./ChatInfo.jsx";
 
 const EmptyState = () => {
   return (
@@ -54,7 +55,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-96 shadow-lg">
+      <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg">
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-bold">New Chat</h2>
           <button
@@ -125,7 +126,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
             </button>
             <button
               type="submit"
-              className="bg-yellow-300 hover:bg-yellow-400 px-4 py-2 rounded-lg"
+              className="bg-[#FFD254] hover:bg-[#FFF48D] px-4 py-2 rounded-lg"
             >
               Create Chat
             </button>
@@ -136,7 +137,6 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
   );
 };
 
-// Update the ChatApp component to include new functionalities
 const ChatRoom = () => {
   const [chats, setChats] = useState(CHATS_DATA);
   const [messages, setMessages] = useState(MESSAGES_DATA);
@@ -145,6 +145,8 @@ const ChatRoom = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showChatInfo, setShowChatInfo] = useState(false);
 
   const messageContainerRef = useRef(null);
 
@@ -234,6 +236,11 @@ const ChatRoom = () => {
 
     // Reset messages for new chat
     setMessages([]);
+
+    // On mobile, hide sidebar after selecting a chat
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
   };
 
   // Auto-scroll to bottom when messages change
@@ -254,7 +261,39 @@ const ChatRoom = () => {
         chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
+
+    // On mobile, hide sidebar after selecting a chat
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
   };
+
+  // Check screen size on mount and window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setShowChatInfo(false);
+        // Only show one panel at a time on mobile
+        if (currentChatId && showSidebar) {
+          setShowSidebar(false);
+        }
+      } else if (window.innerWidth < 1024) {
+        setShowChatInfo(false);
+        setShowSidebar(true);
+      } else {
+        setShowSidebar(true);
+        setShowChatInfo(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [currentChatId]);
+
+  // Toggle sidebars
+  const toggleSidebar = () => setShowSidebar(!showSidebar);
+  const toggleChatInfo = () => setShowChatInfo(!showChatInfo);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -262,29 +301,36 @@ const ChatRoom = () => {
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          chats={getFilteredChats()}
-          currentChatId={currentChatId}
-          onChatClick={handleChatClick}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
-          onNewChat={() => setIsNewChatModalOpen(true)}
+        {/* Left Sidebar - conditionally shown */}
+        {showSidebar && (
+          <Sidebar
+            chats={getFilteredChats()}
+            currentChatId={currentChatId}
+            onChatClick={handleChatClick}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+            onNewChat={() => setIsNewChatModalOpen(true)}
+          />
+        )}
+
+        {/* Chat Window with toggles for mobile */}
+        <ChatWindow
+          messages={messages}
+          currentChat={currentChat}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          onSendMessage={handleSendMessage}
+          messageContainerRef={messageContainerRef}
+          toggleSidebar={toggleSidebar}
+          toggleChatInfo={toggleChatInfo}
+          showSidebar={showSidebar}
+          showChatInfo={showChatInfo}
         />
 
-        {currentChatId ? (
-          <ChatWindow
-            messages={messages}
-            currentChat={currentChat}
-            newMessage={newMessage}
-            setNewMessage={setNewMessage}
-            onSendMessage={handleSendMessage}
-            messageContainerRef={messageContainerRef}
-          />
-        ) : (
-          <EmptyState />
-        )}
+        {/* Right Sidebar - conditionally shown */}
+        {showChatInfo && currentChatId && <ChatInfo group={currentChat} />}
       </div>
 
       {/* New Chat Modal */}
