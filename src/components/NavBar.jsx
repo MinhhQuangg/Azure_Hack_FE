@@ -4,7 +4,6 @@ import { logo, chatlas } from "../assets";
 import menu from "../assets/menu_blue.svg";
 import close from "../assets/close_blue.svg";
 import { sections } from "../constants/index.js";
-import { menu, close, logo, chatlas } from "../assets";
 import { useAuth } from "../context/authContext.jsx";
 
 import { styles } from "../styles";
@@ -116,17 +115,17 @@ const NavBar = () => {
           </div>
         ) : (
           <div className="hidden sm:flex w-[30%] justify-end items-center">
-          <button
-            type="submit"
-            className="bg-[#E3E3E3] hover:bg-white py-1 px-5 rounded-full text-lg font-['Montserrat'] font-[500] text-[1.25rem]"
-            style={{
-              ...buttonShadow,
-            }}
-            onClick={() => navigate("/signin")}
-          >
-            Sign in
-          </button>
-        </div>
+            <button
+              type="submit"
+              className="bg-[#E3E3E3] hover:bg-white py-1 px-5 rounded-full text-lg font-['Montserrat'] font-[500] text-[1.25rem]"
+              style={{
+                ...buttonShadow,
+              }}
+              onClick={() => navigate("/signin")}
+            >
+              Sign in
+            </button>
+          </div>
         )}
         <div className="sm:hidden flex flex-1 justify-end items-center">
           <img
