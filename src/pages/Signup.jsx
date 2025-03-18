@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { chatlas, logo, visibility, visibilityOff } from "../assets";
+import { chatlas, logo } from "../assets";
 import { showToastError } from "../components/common/ShowToast";
 import { styles } from "../styles";
+import visibility from "../assets/eye-solid.svg";
+import visibilityOff from "../assets/eye-slash-solid.svg";
 
 const Signup = () => {
   const formContext = useForm();
@@ -14,6 +16,8 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+  const buttonShadow = { boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)" };
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -33,6 +37,13 @@ const Signup = () => {
     }
   };
 
+  const inputShadowStyle = {
+    boxShadow: "inset 0px 4px 4px rgba(0, 0, 0, 0.25)",
+  };
+
+  const inputStyle =
+    "w-full rounded-[6px] lg:rounded-[10px] p-[0.5em] font-['Inter'] lg:text-[1.35rem] text-[#757575]";
+
   return (
     <div
       className="flex justify-center items-center h-screen relative"
@@ -41,7 +52,7 @@ const Signup = () => {
           "linear-gradient(270deg, #eebf2d 0%, #f1c83d 18%, #f4d14d 36%, #f7da5d 54%, #f9e26d 66%, #fceb7d 81%, #fff48d 94%)",
       }}
     >
-      <div className="absolute top-10 left-10">
+      <div className="absolute top-5 left-5 lg:top-10 lg:left-10">
         <div className="flex items-center">
           <img
             src={logo}
@@ -57,27 +68,28 @@ const Signup = () => {
           />
         </div>
       </div>
-      <div className="xl:w-1/5 ">
-        <div
-          className={`${styles.headerSignInText} mb-8 flex flex-col items-center justify-center`}
-        >
-          <h2 className="text-[50px] font-bold mb-3">SIGN UP</h2>
-          <p className={`${styles.headerSignInSubText}`}>Glad to have you!</p>
+      <div className="w-[80%] max-w-[500px]">
+        <div className={`flex flex-col items-center justify-center`}>
+          <h2 className="font-['Montserrat'] text-[2rem] lg:text-[3rem] font-bold">
+            SIGN UP
+          </h2>
+          <p className={`font-['Inter'] lg:text-[1.35rem]`}>
+            Glad to have you!
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-2">
+          <div className="mb-2 mt-2">
             <label
-              className={`${styles.headerSignInSubText} mb-3 block text-[20px] font-bold`}
+              className={`font-["Montserrat"] font-bold text[1.25rem] lg:text-[1.35rem]`}
             >
               Username
             </label>
             <input
               type="text"
               placeholder="Enter your name"
-              className={`w-full border-b-2 ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } text-base p-2 mb-2 rounded focus:outline-none shadow-md focus:shadow-lg`}
+              className={`${inputStyle}`}
+              style={inputShadowStyle}
               {...register("username", {
                 required: { value: true, message: "Username is required" },
               })}
@@ -90,16 +102,15 @@ const Signup = () => {
           </div>
           <div className="mb-2">
             <label
-              className={`${styles.headerSignInSubText} mb-3 block text-[20px] font-bold`}
+              className={`font-["Montserrat"] font-bold text[1.25rem] lg:text-[1.35rem]`}
             >
               Email
             </label>
             <input
               type="email"
               placeholder="Enter your email"
-              className={`w-full border-b-2 ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } text-base p-2 mb-2 rounded focus:outline-none shadow-md focus:shadow-lg`}
+              className={`${inputStyle}`}
+              style={inputShadowStyle}
               {...register("email", {
                 required: { value: true, message: "Email is required" },
               })}
@@ -113,7 +124,7 @@ const Signup = () => {
 
           <div className="mb-2">
             <label
-              className={`${styles.headerSignInSubText} mb-3 block text-[20px] font-bold`}
+              className={`font-["Montserrat"] font-bold text[1.25rem] lg:text-[1.35rem]`}
             >
               Password
             </label>
@@ -121,20 +132,28 @@ const Signup = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className={`w-full border-b-2 ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                } text-base p-2 mb-2 rounded focus:outline-none shadow-md focus:shadow-lg`}
+                className={`${inputStyle}`}
+                style={inputShadowStyle}
                 {...register("password", { required: "Password is required" })}
               />
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute top-3 right-2"
+                className="absolute top-[50%] right-7"
+                style={{ transform: "translate(50%, -50%)" }}
               >
                 {showPassword ? (
-                  <img src={visibility} alt="invisible" className="w-5 h-5" />
+                  <img
+                    src={visibility}
+                    alt="invisible"
+                    className="w-auto h-6"
+                  />
                 ) : (
-                  <img src={visibilityOff} alt="visible" className="w-5 h-5" />
+                  <img
+                    src={visibilityOff}
+                    alt="visible"
+                    className="w-auto h-6"
+                  />
                 )}
               </button>
             </div>
@@ -147,7 +166,7 @@ const Signup = () => {
 
           <div className="mb-2">
             <label
-              className={`${styles.headerSignInSubText} mb-3 block text-[20px] font-bold`}
+              className={`font-["Montserrat"] font-bold text[1.25rem] lg:text-[1.35rem]`}
             >
               Confirm Password
             </label>
@@ -155,9 +174,8 @@ const Signup = () => {
               <input
                 type="password"
                 placeholder="Confirm your password"
-                className={`w-full border-b-2 ${
-                  errors.passwordConfirm ? "border-red-500" : "border-gray-300"
-                } text-base p-2 mb-2 rounded focus:outline-none shadow-md focus:shadow-lg`}
+                className={`${inputStyle}`}
+                style={inputShadowStyle}
                 {...register("passwordConfirm", {
                   required: "Please confirm your password",
                   validate: (value) => {
@@ -174,18 +192,19 @@ const Signup = () => {
             )}
           </div>
 
-          <div className="pt-5 text-center">
-            <p className="text-[20px] mb-2">
+          <div className="font-['Montserrat'] text-center lg:text-[1.35rem] pt-2">
+            <p className="">
               Already have an account &nbsp;
               <button onClick={() => navigate("/Signin")} className="underline">
                 Sign In!
               </button>
             </p>
           </div>
-          <div className="flex items-center justify-around mt-4">
+          <div className="flex items-center justify-around pt-5">
             <button
               type="submit"
-              className={`bg-[#9A3558] w-full text-white font-bold py-3 rounded-full text-lg`}
+              className={`w-[33%] font-["Inter"] bg-[#9A3558] hover:bg-[#AF476B] text-white font-bold text-[1.15rem] lg:text-[1.35rem] py-3 rounded-[10px] transition-all duration-100`}
+              style={buttonShadow}
             >
               {loading ? "Loading..." : "Sign up "}
             </button>

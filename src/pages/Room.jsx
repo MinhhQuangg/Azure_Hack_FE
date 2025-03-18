@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import NavBar2 from "../../components/NavBar2";
-import Avatar from "./ReusableComponents.jsx";
-import Sidebar from "./Sidebar.jsx";
-import ChatWindow from "./ChatWindow.jsx";
-import { CHATS_DATA, MESSAGES_DATA } from "./Data.jsx";
-import ChatInfo from "./ChatInfo.jsx";
+import Avatar from "../components/chatroom/ReusableComponents.jsx";
+import Sidebar from "../components/chatroom/Sidebar.jsx";
+import ChatWindow from "../components/chatroom/ChatWindow.jsx";
+import { CHATS_DATA, MESSAGES_DATA } from "../components/chatroom/Data.jsx";
+import ChatInfo from "../components/chatroom/ChatInfo.jsx";
+import NavBar from "../components/NavBar.jsx";
 
 const EmptyState = () => {
   return (
@@ -297,7 +297,7 @@ const ChatRoom = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      <NavBar2 />
+      <NavBar />
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">

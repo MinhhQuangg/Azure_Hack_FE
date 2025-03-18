@@ -2,13 +2,15 @@ import { GoogleLogin } from "@react-oauth/google";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { chatlas, logo, visibility, visibilityOff } from "../assets";
+import { chatlas, logo } from "../assets";
 import {
   showToastError,
   showToastSuccess,
 } from "../components/common/ShowToast";
 import axios from "axios";
 import { styles } from "../styles";
+import visibility from "../assets/eye-solid.svg";
+import visibilityOff from "../assets/eye-slash-solid.svg";
 
 export const Signin = () => {
   const formContext = useForm();
@@ -63,15 +65,25 @@ export const Signin = () => {
     showToastError("Google authentication failed");
     console.error("Google authentication error:", error);
   };
+
+  const inputShadowStyle = {
+    boxShadow: "inset 0px 4px 4px rgba(0, 0, 0, 0.25)",
+  };
+
+  const inputStyle =
+    "w-full rounded-[6px] lg:rounded-[10px] p-[0.5em] font-['Inter'] lg:text-[1.35rem] text-[#757575]";
+
+  const buttonShadow = { boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)" };
+
   return (
     <div
-      className="flex justify-center items-center h-screen relative"
+      className="flex justify-center items-center h-screen relative w-full"
       style={{
         background:
           "linear-gradient(270deg, #eebf2d 0%, #f1c83d 18%, #f4d14d 36%, #f7da5d 54%, #f9e26d 66%, #fceb7d 81%, #fff48d 94%)",
       }}
     >
-      <div className="absolute top-10 left-10">
+      <div className="absolute top-5 left-5 lg:top-10 lg:left-10">
         <div className="flex items-center">
           <img
             src={logo}
@@ -87,27 +99,29 @@ export const Signin = () => {
           />
         </div>
       </div>
-      <div className="xl:w-1/5 ">
-        <div
-          className={`${styles.headerSignInText} mb-8 flex flex-col items-center justify-center`}
-        >
-          <h2 className="font-bold mb-3">SIGN IN</h2>
-          <p className={`${styles.headerSignInSubText} mb-2`}>Welcome back!</p>
+      <div className="w-[80%] max-w-[500px]">
+        <div className={`flex flex-col items-center justify-center mt-2`}>
+          <h2 className="font-['Montserrat'] text-[2rem] lg:text-[3rem] font-bold">
+            SIGN IN
+          </h2>
+          <p className={`font-['Inter'] lg:text-[1.35rem]`}>Welcome back!</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col lg:gap-2"
+        >
+          <div className="flex flex-col lg:gap-2">
             <label
-              className={`${styles.headerSignInSubText} mb-3 block text-[20px] font-bold`}
+              className={`font-["Montserrat"] font-bold text[1.25rem] lg:text-[1.35rem]`}
             >
               Email
             </label>
             <input
               type="email"
               placeholder="Enter your email"
-              className={`w-full border-b-2 ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } text-base p-2 mb-2 rounded focus:outline-none shadow-md focus:shadow-lg`}
+              className={`${inputStyle}`}
+              style={inputShadowStyle}
               {...register("email", {
                 required: { value: true, message: "Email is required" },
               })}
@@ -119,9 +133,9 @@ export const Signin = () => {
             )}
           </div>
 
-          <div className="mb-4">
+          <div className="flex flex-col lg:gap-2 mt-2">
             <label
-              className={`${styles.headerSignInSubText} mb-3 block text-[20px] font-bold`}
+              className={`font-["Montserrat"] font-bold text[1.25rem] lg:text-[1.35rem]`}
             >
               Password
             </label>
@@ -129,20 +143,28 @@ export const Signin = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className={`w-full border-b-2 ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                } text-base p-2 mb-2 rounded focus:outline-none shadow-md focus:shadow-lg`}
+                className={`${inputStyle}`}
+                style={inputShadowStyle}
                 {...register("password", { required: "Password is required" })}
               />
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute top-3 right-2"
+                className="absolute top-[50%] right-7"
+                style={{ transform: "translate(50%, -50%)" }}
               >
                 {showPassword ? (
-                  <img src={visibility} alt="invisible" className="w-5 h-5" />
+                  <img
+                    src={visibility}
+                    alt="invisible"
+                    className="w-auto h-6"
+                  />
                 ) : (
-                  <img src={visibilityOff} alt="visible" className="w-5 h-5" />
+                  <img
+                    src={visibilityOff}
+                    alt="visible"
+                    className="w-auto h-6"
+                  />
                 )}
               </button>
             </div>
@@ -153,41 +175,48 @@ export const Signin = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center align-center gap-2">
               <input
                 type="checkbox"
-                className="h-4 w-4 mr-2"
+                className="h-[1.35rem] w-[1.35rem]"
                 {...register("remember")}
               />
-              <span className={`${styles.signInSubText}`}>Remember me</span>
+              <span className={`font-["Montserrat"] lg:text-[1.35rem]`}>
+                Remember me
+              </span>
             </div>
             <button
               onClick={() => navigate("/forgotpassword")}
-              className={`${styles.signInSubText} block text-center underline`}
+              className={`font-['Montserrat'] lg:text-[1.35rem] text-center underline`}
             >
               Forgot password?
             </button>
           </div>
 
-          <div className="flex items-center justify-around mt-4">
+          <div className="flex items-center justify-around mt-4 w-full">
             <button
               type="submit"
-              className={`bg-[#9A3558] w-full text-white font-bold py-2 rounded-full text-lg`}
+              className={`w-[33%] font-["Inter"] bg-[#9A3558] hover:bg-[#AF476B] text-white font-bold text-[1.15rem] lg:text-[1.35rem] py-3 rounded-[10px] transition-all duration-100`}
+              style={buttonShadow}
             >
-              {loading ? "Loading..." : "Sign in "}
+              {loading ? "Loading..." : "Sign in"}
             </button>
           </div>
         </form>
 
-        <div className="pt-5 text-center">
+        <div className="font-['Montserrat'] pt-5 text-center lg:text-[1.35rem]">
           <p className={`mb-2`}>
-            Don't have an account? &nbsp;
-            <button onClick={() => navigate("/Signup")} className="underline">
-              Sign up!
+            Don't have an account?
+            <button
+              onClick={() => navigate("/Signup")}
+              className="underline ml-2"
+            >
+              Sign up
             </button>
           </p>
         </div>
+
         <div className="mt-[20px] mx-auto flex items-center justify-center">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}

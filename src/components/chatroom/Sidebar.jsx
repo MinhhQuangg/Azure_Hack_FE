@@ -70,8 +70,12 @@ const Sidebar = ({
               <Avatar color={chat.avatarColor} text={chat.avatarText} />
               <div className="ml-3 flex-1">
                 <div className="flex justify-between">
-                  <span className="font-['Montserrat'] font-semibold">{chat.name}</span>
-                  <span className="font-['Inter'] text-[#989898] text-xs">{chat.time}</span>
+                  <span className="font-['Montserrat'] font-semibold">
+                    {chat.name}
+                  </span>
+                  <span className="font-['Inter'] text-[#989898] text-xs">
+                    {chat.time}
+                  </span>
                 </div>
                 <p className="font-['Inter'] text-[#65686C] text-sm truncate">
                   {chat.lastMessage}
