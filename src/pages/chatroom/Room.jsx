@@ -126,7 +126,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
             </button>
             <button
               type="submit"
-              className="bg-[#FFD254] hover:bg-[#FFF48D] px-4 py-2 rounded-lg"
+              className="bg-yellow-400 hover:bg-yellow-300 px-4 py-2 rounded-lg"
             >
               Create Chat
             </button>

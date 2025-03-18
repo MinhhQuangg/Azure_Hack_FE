@@ -9,8 +9,77 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 
+const LeaveGroupNotification = ({ isOpen, onClose }) => {
+  if (!isOpen) return;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg py-8 relative">
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
+        >
+          &times;
+        </button>
+        <h2 className="font-['Montserrat'] w-full text-center text-xl font-bold mb-5">
+          Leave Group?
+        </h2>
+        <div className="flex flex-col gap-5 items-center justify-center w-full">
+          <button className="font-bold font-['Montserrat'] w-[50%] text-black rounded-md py-2 bg-yellow-400 hover:bg-yellow-300">
+            Yes
+          </button>
+          <button
+            className="font-bold font-['Montserrat'] w-[50%] bg-[#E8E8E8] hover:bg-gray-300 text-[#A30609] rounded-md py-2"
+            style={{ border: "1px solid rgba(0,0,0,0.3)" }}
+          >
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UserInfo = ({ isOpen, onClose }) => {
+  if (!isOpen) return;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg py-8 relative">
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
+        >
+          &times;
+        </button>
+        <h2 className="font-['Montserrat'] w-full text-center text-xl font-bold mb-5">
+          User Info
+        </h2>
+        <div className="text-center">
+          <div>Joined</div>
+          <p>March 3, 2025</p>
+        </div>
+        <div className="flex flex-col gap-5 items-center justify-center w-full">
+          <button className="font-bold font-['Montserrat'] w-[50%] text-black rounded-md py-2 bg-yellow-400 hover:bg-yellow-300">
+            Make Admin
+          </button>
+          <button
+            className="font-bold font-['Montserrat'] w-[50%] bg-[#E8E8E8] hover:bg-gray-300 text-[#A30609] rounded-md py-2"
+            style={{ border: "1px solid rgba(0,0,0,0.3)" }}
+          >
+            Remove Member
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ChatInfo = ({ group }) => {
   const [language, setLanguage] = useState("English");
+  const [isOpenLeaveGroupNotification, setIsOpenLeaveGroupNotification] =
+    useState(false);
+  const [isOpenUserInfo, setIsOpenUserInfo] = useState(false);
 
   return (
     <div
@@ -49,7 +118,10 @@ const ChatInfo = ({ group }) => {
             <div className="w-8 h-8 rounded-full bg-green-400 flex-shrink-0"></div>
             <span className="ml-2">Person 1</span>
           </div>
-          <button className="text-gray-500">
+          <button
+            className="text-gray-500"
+            onClick={() => setIsOpenUserInfo(true)}
+          >
             <FaEllipsisH size={16} />
           </button>
         </div>
@@ -89,12 +161,25 @@ const ChatInfo = ({ group }) => {
         </div>
       </div>
 
-      <div className="p-4 mt-auto">
-        <button className="flex items-center text-red-500 font-medium">
+      <div className="p-4 mt-auto flex items-center justify-center">
+        <button
+          className="flex items-center text-red-500 font-medium"
+          onClick={() => setIsOpenLeaveGroupNotification(true)}
+        >
           <FaTimesCircle size={16} className="mr-1" />
           Leave Group
         </button>
       </div>
+
+      <LeaveGroupNotification
+        isOpen={isOpenLeaveGroupNotification}
+        onClose={() => setIsOpenLeaveGroupNotification(false)}
+      />
+
+      <UserInfo
+        isOpen={isOpenUserInfo}
+        onClose={() => setIsOpenUserInfo(false)}
+      />
     </div>
   );
 };
