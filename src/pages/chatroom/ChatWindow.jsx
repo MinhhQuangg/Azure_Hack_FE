@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Avatar from "./ReusableComponents";
 import { IconButton } from "./ReusableComponents";
 import { styles } from "../../styles";
@@ -12,7 +12,6 @@ import {
 } from "react-icons/fa";
 
 const MessageBubble = ({ message }) => {
-  // Typing indicator
   if (message.typing) {
     return (
       <div
@@ -45,6 +44,95 @@ const MessageBubble = ({ message }) => {
             ></div>
           </div>
           <div className="text-xs text-gray-500 mt-1">Person is typing...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (message.fileUrl) {
+    return (
+      <div
+        className={`flex mb-4 ${
+          message.fromUser ? "justify-end" : "justify-start"
+        }`}
+      >
+        {!message.fromUser && (
+          <div className="mr-2">
+            <Avatar
+              color={message.senderColor}
+              text={message.sender}
+              size="sm"
+            />
+          </div>
+        )}
+        <div
+          className={`rounded-lg p-3 inline-block max-w-md ${
+            message.fromUser
+              ? "bg-yellow-300 text-black"
+              : "bg-gray-200 text-black"
+          }`}
+        >
+          <div className="flex items-center">
+            <FaPaperclip className="mr-2" />
+            <a
+              href={message.fileUrl}
+              download={message.fileName}
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              {message.fileName || "Download file"}
+            </a>
+          </div>
+          {message.content && <div className="mt-2">{message.content}</div>}
+          <div className="text-xs text-gray-600 mt-1 text-right">
+            {message.timestamp
+              ? new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : ""}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (message.imageUrl) {
+    return (
+      <div
+        className={`flex mb-4 ${
+          message.fromUser ? "justify-end" : "justify-start"
+        }`}
+      >
+        {!message.fromUser && (
+          <div className="mr-2">
+            <Avatar
+              color={message.senderColor}
+              text={message.sender}
+              size="sm"
+            />
+          </div>
+        )}
+        <div
+          className={`rounded-lg p-3 inline-block max-w-md ${
+            message.fromUser
+              ? "bg-yellow-300 text-black"
+              : "bg-gray-200 text-black"
+          }`}
+        >
+          <img
+            src={message.imageUrl}
+            alt="Shared image"
+            className="max-w-full rounded-md"
+          />
+          {message.content && <div className="mt-2">{message.content}</div>}
+          <div className="text-xs text-gray-600 mt-1 text-right">
+            {message.timestamp
+              ? new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : ""}
+          </div>
         </div>
       </div>
     );
@@ -93,10 +181,13 @@ const ChatWindow = ({
   toggleChatInfo,
   showSidebar,
   showChatInfo,
+  onFileUpload,
+  onImageUpload,
 }) => {
   const [language, setLanguage] = useState("English");
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
-  // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -104,14 +195,36 @@ const ChatWindow = ({
     }
   };
 
+  const handleFileButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageButtonClick = () => {
+    imageInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      onFileUpload(file);
+      e.target.value = "";
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      onImageUpload(file);
+      e.target.value = "";
+    }
+  };
+
   return (
     <div
       className={`${styles.paddingY} mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
     >
-      {/* Chat Header */}
       <div className="p-4 border-b bg-white flex items-center justify-between">
         <div className="flex items-center">
-          {/* Mobile sidebar toggle button */}
           <button
             className="md:hidden mr-2 text-gray-600"
             onClick={toggleSidebar}
@@ -150,17 +263,37 @@ const ChatWindow = ({
         </div>
       </div>
 
-      {/* Messages Area */}
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
       </div>
 
-      {/* Input Area */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <input
+        type="file"
+        ref={imageInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleImageChange}
+      />
+
       <div className="p-4 bg-white border-t flex items-center">
-        <IconButton icon={<FaPaperclip />} className="hidden sm:block" />
-        <IconButton icon={<FaImage />} className="hidden sm:block" />
+        <IconButton
+          icon={<FaPaperclip />}
+          className="hidden sm:block"
+          onClick={handleFileButtonClick}
+        />
+        <IconButton
+          icon={<FaImage />}
+          className="hidden sm:block"
+          onClick={handleImageButtonClick}
+        />
         <div className="flex-1 mx-2">
           <textarea
             className="border rounded-lg p-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300"
