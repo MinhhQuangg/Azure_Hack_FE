@@ -1,12 +1,12 @@
 import React from "react";
 import NavBar from "../components/NavBar";
-import Hero from "../components/home/hero";
+import Hero from "../components/home/Hero";
 import Mission from "../components/home/Mission";
 import Service from "../components/home/Service";
-import Footer from "../components/Footer";
 import Feature from "../components/home/Feature";
+import Footer from "../components/Footer";
 
-const Home = () => {
+const Home2 = () => {
   return (
     <div>
       <NavBar />
@@ -19,4 +19,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Home2;

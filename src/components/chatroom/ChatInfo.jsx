@@ -16,7 +16,7 @@ import {
 import {
   showToastError,
   showToastSuccess,
-} from "../../components/common/ShowToast";
+} from "../common/ShowToast";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
