@@ -463,7 +463,7 @@ const ChatInfo = ({ groupId }) => {
 
       <div className="p-4 mt-auto flex items-center justify-center">
         <button
-          className="flex items-center text-red-500 font-medium"
+          className="font-['Montserrat'] font-semibold flex items-center text-red-500 font-medium"
           onClick={() => setIsLeaveModalOpen(true)}
         >
           <FaTimesCircle size={16} className="mr-1" />
