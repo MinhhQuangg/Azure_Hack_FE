@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { chatlas, logo } from "../assets";
-import { showToastError } from "../components/common/ShowToast";
+import { chatlas, logo, visibility, visibilityOff } from "../assets";
+import {
+  showToastError,
+  showToastSuccess,
+} from "../components/common/ShowToast";
 import { styles } from "../styles";
-import visibility from "../assets/eye-solid.svg";
-import visibilityOff from "../assets/eye-slash-solid.svg";
+import axios from "axios";
+import { useAuth } from "../context/authContext";
 
 const Signup = () => {
   const formContext = useForm();
   const { register, handleSubmit, formState, getValues } = formContext;
   const { errors } = formState;
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -22,13 +26,16 @@ const Signup = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      console.log(data);
-      //   const response = await axios.post(
-      //     "http://localhost:3000/api/v1/users/login",
-      //     data
-      //   );
-      //   console.log(response);
-      //   showToastSuccess(response.data.status);
+      const response = await axios.post(
+        "http://localhost:3000/auth/signup",
+        data
+      );
+      console.log(response);
+      if (response.data?.status === "success") {
+        showToastSuccess(response.data?.message);
+        login(response.data?.token);
+        navigate("/");
+      }
     } catch (err) {
       showToastError(err.response?.data?.message);
       console.log(err);
