@@ -11,8 +11,8 @@ const Hero2 = () => {
   };
 
   const buttonStyles = {
-    primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.45rem] font-bold font-["Inter"] py-2 px-4 md:py-3 md:px-5 rounded-[10px] transition-all duration-150`,
-    secondary: `font-normal font-["Inter"] text-base md:text-lg lg:text-[1.45rem] py-2 px-4 md:py-3 md:px-5 rounded-[10px] border border-black transition-all duration-150`,
+    primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.45rem] font-bold font-["Inter"] py-2 px-4 md:py-3 md:px-5 rounded-[10px] transition-all duration-100`,
+    secondary: `font-normal font-["Inter"] text-base md:text-lg lg:text-[1.45rem] py-2 px-4 md:py-3 md:px-5 rounded-[10px] border border-black transition-all duration-100`,
     boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
   };
 

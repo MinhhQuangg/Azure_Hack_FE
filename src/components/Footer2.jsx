@@ -19,8 +19,7 @@ export const Footer2 = () => {
         </div>
       </div> */}
       <div
-        className={`mt-2 font-["Inter"] flex flex-col md:flex-row justify-between`}
-        style={{ fontSize: "1.25rem" }}
+        className={`mt-2 font-["Inter"] text-[1.25rem] flex flex-col md:flex-row justify-between`}
       >
         <div className="underline">chatlasplaceholder@gmail.com</div>
         <div>© 2025 Chatlas. All Rights Reserved</div>
