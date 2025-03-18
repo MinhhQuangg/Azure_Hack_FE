@@ -4,11 +4,25 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { menu, close, logo, chatlas } from "../assets";
+import { useAuth } from "../context/authContext.jsx";
 
 export const NavBar = () => {
+  const { user, logout } = useAuth();
   const [active, setActive] = useState("");
   const [toggle, setToggle] = useState(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const navigate = useNavigate();
+  const handleMouseEnter = () => {
+    setIsDropdownVisible(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDropdownVisible(false);
+  };
+  const handleLogout = () => {
+    logout();
+    navigate("/signin");
+  };
   return (
     <div
       className={`${styles.paddingX} bg-primary w-full py-3 z-10 fixed top-0`}
@@ -40,7 +54,7 @@ export const NavBar = () => {
           </div>
           <p className="text-white text-[18px] font-bold cursor-pointer flex"></p>
         </Link>
-        <ul className="list-none hidden sm:flex flex-row gap-20">
+        <ul className="list-none hidden sm:flex flex-row gap-16">
           {sections.map((link) => (
             <li
               key={link.id}
@@ -55,15 +69,42 @@ export const NavBar = () => {
             </li>
           ))}
         </ul>
-        <div className="hidden sm:flex gap-4">
-          <button
-            type="submit"
-            className={`bg-[#E3E3E3] hover:bg-white font-bold py-2 px-3 rounded-full text-lg`}
-            onClick={() => navigate("/signin")}
-          >
-            Sign In
-          </button>
-        </div>
+        {user ? (
+          <div className="hidden sm:flex gap-4">
+            <div
+              className="relative"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div
+                className={`${styles.headerSignInSubText} hover:text-white font-bold cursor-pointer`}
+              >
+                Hello, {user?.username || "User"}
+              </div>
+
+              {isDropdownVisible && (
+                <div className="absolute top-5 bg-primary border border-gray-300 rounded-lg shadow-lg w-40 p-2">
+                  <button
+                    className="w-full text-left py-2 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
+                    onClick={handleLogout}
+                  >
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="hidden sm:flex gap-4">
+            <button
+              type="submit"
+              className="bg-[#E3E3E3] hover:bg-white font-bold py-2 px-3 rounded-full text-lg"
+              onClick={() => navigate("/signin")}
+            >
+              Sign In
+            </button>
+          </div>
+        )}
         <div className="sm:hidden flex flex-1 justify-end items-center">
           <img
             src={toggle ? close : menu}

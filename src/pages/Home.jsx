@@ -1,10 +1,10 @@
 import React from "react";
-import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import Feature from "../components/home/Feature";
 import Hero from "../components/home/hero";
 import Mission from "../components/home/Mission";
 import Service from "../components/home/Service";
-import Footer from "../components/Footer";
-import Feature from "../components/home/Feature";
+import NavBar from "../components/NavBar";
 
 const Home = () => {
   return (

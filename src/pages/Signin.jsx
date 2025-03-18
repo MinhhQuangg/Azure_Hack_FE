@@ -9,12 +9,14 @@ import {
 } from "../components/common/ShowToast";
 import axios from "axios";
 import { styles } from "../styles";
+import { useAuth } from "../context/authContext";
 
 export const Signin = () => {
   const formContext = useForm();
-  const { register, handleSubmit, formState, watch } = formContext;
+  const { register, handleSubmit, formState } = formContext;
   const { errors } = formState;
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,12 +26,15 @@ export const Signin = () => {
     setLoading(true);
     try {
       console.log(data);
-      //   const response = await axios.post(
-      //     "http://localhost:3000/api/v1/users/login",
-      //     data
-      //   );
-      //   console.log(response);
-      //   showToastSuccess(response.data.status);
+      const response = await axios.post(
+        "http://localhost:3000/auth/login",
+        data
+      );
+      if (response.data.status === "success") {
+        showToastSuccess("Login successful");
+        login(response.data?.token);
+        navigate("/");
+      }
     } catch (err) {
       showToastError(err.response?.data?.message);
       console.log(err);
@@ -50,6 +55,7 @@ export const Signin = () => {
       );
       if (result.data.status === "success") {
         showToastSuccess("Login successful");
+        login(result.data?.token);
         navigate("/");
       }
     } catch (err) {

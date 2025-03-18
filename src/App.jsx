@@ -1,9 +1,9 @@
-import React from "react";
-import { Routes } from "./routes/Routes";
-import "react-toastify/dist/ReactToastify.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import "./index.css";
+import React from "react";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./index.css";
+import { Routes } from "./routes/Routes";
 const CLIENT_ID =
   "275407016033-3v0na8sqo6n420e74ak2mlule5i24330.apps.googleusercontent.com";
 const App = () => {
