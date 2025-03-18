@@ -121,13 +121,13 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg mr-2"
+              className="font-['Montserrat'] font-semibold bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg mr-2"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-yellow-400 hover:bg-yellow-300 px-4 py-2 rounded-lg"
+              className="font-['Montserrat'] font-semibold bg-yellow-400 hover:bg-yellow-300 px-4 py-2 rounded-lg"
             >
               Create Chat
             </button>
