@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { styles } from "../../styles";
 import { IconButton } from "./ReusableComponents";
 import {
@@ -7,10 +7,14 @@ import {
   FaEllipsisH,
   FaCopy,
   FaTimesCircle,
+  FaCheck,
+  FaTimes,
+  FaUserPlus,
+  FaUserShield,
 } from "react-icons/fa";
 
-const LeaveGroupNotification = ({ isOpen, onClose }) => {
-  if (!isOpen) return;
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -19,80 +23,276 @@ const LeaveGroupNotification = ({ isOpen, onClose }) => {
           onClick={onClose}
           className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
         >
-          &times;
+          <FaTimes />
         </button>
         <h2 className="font-['Montserrat'] w-full text-center text-xl font-bold mb-5">
-          Leave Group?
+          {title}
         </h2>
-        <div className="flex flex-col gap-5 items-center justify-center w-full">
-          <button className="font-bold font-['Montserrat'] w-[50%] text-black rounded-md py-2 bg-yellow-400 hover:bg-yellow-300">
-            Yes
-          </button>
-          <button
-            className="font-bold font-['Montserrat'] w-[50%] bg-[#E8E8E8] hover:bg-gray-300 text-[#A30609] rounded-md py-2"
-            style={{ border: "1px solid rgba(0,0,0,0.3)" }}
-          >
-            No
-          </button>
-        </div>
+        {children}
       </div>
     </div>
   );
 };
 
-const UserInfo = ({ isOpen, onClose }) => {
-  if (!isOpen) return;
+const ActionButton = ({ onClick, primary, children, className }) => (
+  <button
+    onClick={onClick}
+    className={`font-bold font-['Montserrat'] w-[50%] rounded-md py-2 ${
+      primary
+        ? "text-black bg-yellow-400 hover:bg-yellow-300"
+        : "bg-[#E8E8E8] hover:bg-gray-300 text-[#A30609]"
+    } ${className || ""}`}
+    style={primary ? {} : { border: "1px solid rgba(0,0,0,0.3)" }}
+  >
+    {children}
+  </button>
+);
+
+const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
+  const { id, name, isOnline, isAdmin: memberIsAdmin, avatarColor } = member;
+  const isCurrentUser = id === currentUserId;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg py-8 relative">
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
+    <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center">
+        <div
+          className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
+            isOnline ? "bg-green-400" : "bg-gray-200"
+          }`}
+          style={avatarColor ? { backgroundColor: avatarColor } : {}}
         >
-          &times;
-        </button>
-        <h2 className="font-['Montserrat'] w-full text-center text-xl font-bold mb-5">
-          User Info
-        </h2>
-        <div className="text-center">
-          <div>Joined</div>
-          <p>March 3, 2025</p>
+          {!avatarColor && name.charAt(0).toUpperCase()}
         </div>
-        <div className="flex flex-col gap-5 items-center justify-center w-full">
-          <button className="font-bold font-['Montserrat'] w-[50%] text-black rounded-md py-2 bg-yellow-400 hover:bg-yellow-300">
-            Make Admin
-          </button>
-          <button
-            className="font-bold font-['Montserrat'] w-[50%] bg-[#E8E8E8] hover:bg-gray-300 text-[#A30609] rounded-md py-2"
-            style={{ border: "1px solid rgba(0,0,0,0.3)" }}
-          >
-            Remove Member
-          </button>
-        </div>
+        <span className="ml-2">
+          {name}
+          {isCurrentUser ? " (You)" : ""}
+        </span>
       </div>
+      {isCurrentUser ? (
+        <span className="text-xs text-gray-500">
+          {memberIsAdmin ? "Admin" : ""}
+        </span>
+      ) : (
+        <>
+          {memberIsAdmin ? (
+            <div className="flex items-center">
+              <span className="text-xs text-gray-500 mr-2">Admin</span>
+              <button
+                className="text-gray-500"
+                onClick={() => onUserInfoClick(member)}
+              >
+                <FaEllipsisH size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              className="text-gray-500"
+              onClick={() => onUserInfoClick(member)}
+            >
+              <FaEllipsisH size={16} />
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 };
 
-const ChatInfo = ({ group }) => {
+const ChatInfo = ({ groupId }) => {
   const [language, setLanguage] = useState("English");
-  const [isOpenLeaveGroupNotification, setIsOpenLeaveGroupNotification] =
-    useState(false);
-  const [isOpenUserInfo, setIsOpenUserInfo] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [groupData, setGroupData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [joinRequests, setJoinRequests] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState("user-123");
+
+  useEffect(() => {
+    const fetchGroupData = async () => {
+      try {
+        setLoading(true);
+        setTimeout(() => {
+          const mockData = {
+            id: groupId || "group-1",
+            name: "Group 1",
+            createdAt: "2025-03-03T12:00:00Z",
+            inviteLink: "chatlas/supercoolplaceholderlink/id.com",
+            members: [
+              {
+                id: "user-123",
+                name: "User123",
+                isAdmin: true,
+                isOnline: true,
+              },
+              {
+                id: "person-1",
+                name: "Person 1",
+                isAdmin: false,
+                isOnline: true,
+                avatarColor: "#4ade80",
+              },
+            ],
+            joinRequests: [
+              {
+                id: "person-2",
+                name: "Person 2",
+                requestedAt: "2025-03-15T09:45:00Z",
+                avatarColor: "#93c5fd",
+              },
+            ],
+          };
+
+          setGroupData(mockData);
+          setJoinRequests(mockData.joinRequests);
+          setLoading(false);
+        }, 300);
+      } catch (err) {
+        setError("Failed to load group data");
+        setLoading(false);
+      }
+    };
+
+    fetchGroupData();
+  }, [groupId]);
+
+  const isCurrentUserAdmin = groupData?.members.some(
+    (member) => member.id === currentUserId && member.isAdmin
+  );
+
+  const handleLeaveGroup = async () => {
+    try {
+      console.log("Left group", groupId);
+      setIsLeaveModalOpen(false);
+    } catch (err) {
+      console.error("Failed to leave group", err);
+    }
+  };
+
+  const handleUserAction = async (userId, action) => {
+    try {
+      if (action === "makeAdmin") {
+        // await api.makeUserAdmin(groupId, userId);
+        console.log("Made user admin", userId);
+      } else if (action === "removeAdmin") {
+        // await api.removeUserAdmin(groupId, userId);
+        console.log("Removed admin status from user", userId);
+      } else if (action === "removeMember") {
+        // await api.removeMember(groupId, userId);
+        console.log("Removed member", userId);
+      }
+      setIsUserInfoModalOpen(false);
+
+      if (action === "makeAdmin") {
+        setGroupData((prev) => ({
+          ...prev,
+          members: prev.members.map((member) =>
+            member.id === userId ? { ...member, isAdmin: true } : member
+          ),
+        }));
+      } else if (action === "removeAdmin") {
+        setGroupData((prev) => ({
+          ...prev,
+          members: prev.members.map((member) =>
+            member.id === userId ? { ...member, isAdmin: false } : member
+          ),
+        }));
+      } else if (action === "removeMember") {
+        setGroupData((prev) => ({
+          ...prev,
+          members: prev.members.filter((member) => member.id !== userId),
+        }));
+      }
+    } catch (err) {
+      console.error(`Failed to ${action}`, err);
+    }
+  };
+
+  const handleJoinRequest = async (requestId, accept) => {
+    try {
+      console.log(accept ? "Accepted" : "Rejected", "join request", requestId);
+
+      setJoinRequests((prev) => prev.filter((req) => req.id !== requestId));
+
+      if (accept) {
+        const newMember = joinRequests.find((req) => req.id === requestId);
+        setGroupData((prev) => ({
+          ...prev,
+          members: [...prev.members, { ...newMember, isAdmin: false }],
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to handle join request", err);
+    }
+  };
+
+  const handleCopyInviteLink = () => {
+    if (groupData?.inviteLink) {
+      navigator.clipboard
+        .writeText(groupData.inviteLink)
+        .then(() => {
+          console.log("Copied to clipboard");
+        })
+        .catch((err) => {
+          console.error("Failed to copy", err);
+        });
+    }
+  };
+
+  const handleUserInfoClick = (user) => {
+    setSelectedUser(user);
+    setIsUserInfoModalOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div
+        className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
+      >
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
+      >
+        <p className="text-red-500">{error}</p>
+        <button
+          className="mt-2 text-blue-500"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
     <div
       className={`${styles.paddingY} mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white`}
     >
       <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-2xl font-bold">Group 1</h2>
-        <button className="text-gray-500">
-          <FaEdit size={16} />
-        </button>
+        <h2 className="text-2xl font-bold">{groupData?.name}</h2>
+        {isCurrentUserAdmin && (
+          <button className="text-gray-500">
+            <FaEdit size={16} />
+          </button>
+        )}
       </div>
 
-      <div className="flex md:hidden items-center">
+      <div className="flex md:hidden items-center p-4">
         <IconButton icon={<FaGlobe />} />
         <select
           value={language}
@@ -108,54 +308,71 @@ const ChatInfo = ({ group }) => {
 
       <div className="p-4 border-b">
         <h3 className="text-gray-600 mb-1">Created</h3>
-        <p className="text-sm">March 3, 2025</p>
+        <p className="text-sm">{formatDate(groupData?.createdAt)}</p>
       </div>
 
       <div className="p-4 border-b">
-        <h3 className="text-gray-600 mb-2">Members</h3>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-green-400 flex-shrink-0"></div>
-            <span className="ml-2">Person 1</span>
-          </div>
-          <button
-            className="text-gray-500"
-            onClick={() => setIsOpenUserInfo(true)}
-          >
-            <FaEllipsisH size={16} />
-          </button>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center">
-              U
+        <h3 className="text-gray-600 mb-2">
+          Members ({groupData?.members.length})
+        </h3>
+        {groupData?.members.map((member) => (
+          <MemberItem
+            key={member.id}
+            member={member}
+            currentUserId={currentUserId}
+            isAdmin={isCurrentUserAdmin}
+            onUserInfoClick={handleUserInfoClick}
+          />
+        ))}
+      </div>
+
+      {isCurrentUserAdmin && joinRequests.length > 0 && (
+        <div className="p-4 border-b">
+          <h3 className="text-gray-600 mb-2">
+            Requests ({joinRequests.length})
+          </h3>
+          {joinRequests.map((request) => (
+            <div
+              key={request.id}
+              className="flex items-center justify-between mb-2"
+            >
+              <div className="flex items-center">
+                <div
+                  className="w-8 h-8 rounded-full bg-blue-200 flex-shrink-0"
+                  style={
+                    request.avatarColor
+                      ? { backgroundColor: request.avatarColor }
+                      : {}
+                  }
+                ></div>
+                <span className="ml-2">{request.name}</span>
+              </div>
+              <div className="flex">
+                <button
+                  className="text-green-500 mr-2"
+                  onClick={() => handleJoinRequest(request.id, true)}
+                >
+                  <FaCheck size={16} />
+                </button>
+                <button
+                  className="text-red-500"
+                  onClick={() => handleJoinRequest(request.id, false)}
+                >
+                  <FaTimes size={16} />
+                </button>
+              </div>
             </div>
-            <span className="ml-2">User123</span>
-          </div>
-          <span className="text-xs text-gray-500">Admin</span>
+          ))}
         </div>
-      </div>
-
-      <div className="p-4 border-b">
-        <h3 className="text-gray-600 mb-2">Requests</h3>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-blue-200 flex-shrink-0"></div>
-            <span className="ml-2">Person 2</span>
-          </div>
-          <button className="text-gray-500">
-            <FaEllipsisH size={16} />
-          </button>
-        </div>
-      </div>
+      )}
 
       <div className="p-4 border-b">
         <h3 className="text-gray-600 mb-2">Invite Link</h3>
         <div className="flex items-center">
           <p className="text-xs text-gray-500 truncate mr-2">
-            chatlas/supercoolplaceholderlink/id.com
+            {groupData?.inviteLink}
           </p>
-          <button className="text-gray-500">
+          <button className="text-gray-500" onClick={handleCopyInviteLink}>
             <FaCopy size={16} />
           </button>
         </div>
@@ -164,22 +381,69 @@ const ChatInfo = ({ group }) => {
       <div className="p-4 mt-auto flex items-center justify-center">
         <button
           className="flex items-center text-red-500 font-medium"
-          onClick={() => setIsOpenLeaveGroupNotification(true)}
+          onClick={() => setIsLeaveModalOpen(true)}
         >
           <FaTimesCircle size={16} className="mr-1" />
           Leave Group
         </button>
       </div>
 
-      <LeaveGroupNotification
-        isOpen={isOpenLeaveGroupNotification}
-        onClose={() => setIsOpenLeaveGroupNotification(false)}
-      />
+      <Modal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        title="Leave Group?"
+      >
+        <div className="flex flex-col gap-5 items-center justify-center w-full">
+          <ActionButton onClick={handleLeaveGroup} primary>
+            Yes
+          </ActionButton>
+          <ActionButton onClick={() => setIsLeaveModalOpen(false)}>
+            No
+          </ActionButton>
+        </div>
+      </Modal>
 
-      <UserInfo
-        isOpen={isOpenUserInfo}
-        onClose={() => setIsOpenUserInfo(false)}
-      />
+      <Modal
+        isOpen={isUserInfoModalOpen}
+        onClose={() => setIsUserInfoModalOpen(false)}
+        title="User Info"
+      >
+        <div className="text-center mb-6">
+          <div className="font-medium text-gray-700">Joined</div>
+          <p className="text-gray-600">March 3, 2025</p>
+        </div>
+        <div className="flex flex-col gap-5 items-center justify-center w-full">
+          {selectedUser?.isAdmin ? (
+            <ActionButton
+              onClick={() => handleUserAction(selectedUser?.id, "removeAdmin")}
+              primary
+            >
+              <div className="flex items-center justify-center">
+                <FaUserShield className="mr-2" />
+                Remove Admin Status
+              </div>
+            </ActionButton>
+          ) : (
+            <ActionButton
+              onClick={() => handleUserAction(selectedUser?.id, "makeAdmin")}
+              primary
+            >
+              <div className="flex items-center justify-center">
+                <FaUserShield className="mr-2" />
+                Make Admin
+              </div>
+            </ActionButton>
+          )}
+          <ActionButton
+            onClick={() => handleUserAction(selectedUser?.id, "removeMember")}
+          >
+            <div className="flex items-center justify-center">
+              <FaTimesCircle className="mr-2" />
+              Remove Member
+            </div>
+          </ActionButton>
+        </div>
+      </Modal>
     </div>
   );
 };
