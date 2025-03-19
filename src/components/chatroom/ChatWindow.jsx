@@ -1,6 +1,13 @@
 import { useState, useRef } from "react";
 import Avatar from "./ReusableComponents";
 import { IconButton } from "./ReusableComponents";
+import {
+  SpeechConfig,
+  AudioConfig,
+  SpeechRecognizer,
+  SpeechSynthesizer,
+} from "microsoft-cognitiveservices-speech-sdk";
+
 import { styles } from "../../styles";
 import {
   FaPaperclip,
@@ -9,6 +16,8 @@ import {
   FaInfoCircle,
   FaGlobe,
   FaBars,
+  FaMicrophone,
+  FaRegStopCircle,
 } from "react-icons/fa";
 
 const MessageBubble = ({ message }) => {
@@ -193,8 +202,13 @@ const ChatWindow = ({
   onImageUpload,
 }) => {
   const [language, setLanguage] = useState("English");
+  const speechKey =
+    "5Bb2AZsg21fCKHpKJCJOErhN3gUVx4NBANBX6ydwCZ1pqT66lfWsJQQJ99BCACYeBjFXJ3w3AAAYACOGpEct";
+  const speechRegion = "eastus";
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
+  const recognizerRef = useRef(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -226,7 +240,41 @@ const ChatWindow = ({
       e.target.value = "";
     }
   };
+  const handleSpeechToTextStart = () => {
+    const speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
+    const audioConfig = AudioConfig.fromDefaultMicrophoneInput();
+    speechConfig.setProperty("speechServiceConnection_Language", "auto");
+    const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
 
+    recognizerRef.current = recognizer;
+    setIsRecording(true);
+
+    recognizer.startContinuousRecognitionAsync(
+      () => {},
+      (err) => {
+        console.error(err);
+        setIsRecording(false);
+      }
+    );
+
+    recognizer.recognizing = (s, e) => {
+      setNewMessage(e.result.text);
+    };
+  };
+
+  const handleSpeechToTextStop = () => {
+    if (recognizerRef.current) {
+      recognizerRef.current.stopContinuousRecognitionAsync(
+        () => {
+          setIsRecording(false);
+        },
+        (err) => {
+          console.error(err);
+          setIsRecording(false);
+        }
+      );
+    }
+  };
   return (
     <div
       className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
@@ -305,6 +353,19 @@ const ChatWindow = ({
           icon={<FaImage color="#081C48" />}
           className="hidden sm:block"
           onClick={handleImageButtonClick}
+        />
+        <IconButton
+          icon={
+            isRecording ? (
+              <FaRegStopCircle color="#081C48" />
+            ) : (
+              <FaMicrophone color="#081C48" />
+            )
+          }
+          className="hidden sm:block"
+          onClick={
+            isRecording ? handleSpeechToTextStop : handleSpeechToTextStart
+          }
         />
         <div className="flex-1 mx-2">
           <textarea
