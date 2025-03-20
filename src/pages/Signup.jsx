@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { chatlas, logo } from "../assets";
-import visibility from "../assets/eye-solid.svg";
-import visibilityOff from "../assets/eye-slash-solid.svg";
 import {
   showToastError,
   showToastSuccess,
 } from "../components/common/ShowToast";
 import { styles } from "../styles";
+import visibility from "../assets/eye-solid.svg";
+import visibilityOff from "../assets/eye-slash-solid.svg";
 import axios from "axios";
 import { useAuth } from "../context/authContext";
 
