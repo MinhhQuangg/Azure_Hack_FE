@@ -1,12 +1,13 @@
+// ChatRoom.jsx
 import React, { useState, useEffect, useRef } from "react";
 import Avatar from "../components/chatroom/ReusableComponents.jsx";
 import Sidebar from "../components/chatroom/Sidebar.jsx";
 import ChatWindow from "../components/chatroom/ChatWindow.jsx";
-import { CHATS_DATA, MESSAGES_DATA } from "../components/chatroom/Data.jsx";
 import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
 
+// Empty state component displayed if no chat is selected
 const EmptyState = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
@@ -26,10 +27,10 @@ const EmptyState = () => {
   );
 };
 
-// Modal component for creating new chats
+// Modal component for creating a new chat (Chat Name + Description only)
 const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
   const [chatName, setChatName] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [description, setDescription] = useState("");
 
   if (!isOpen) return null;
 
@@ -37,22 +38,16 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
     e.preventDefault();
     if (!chatName.trim()) return;
 
+    // Create a new chat object locally
     onCreateChat({
       name: chatName,
-      members: selectedUsers,
+      description: description,
     });
 
     setChatName("");
-    setSelectedUsers([]);
+    setDescription("");
     onClose();
   };
-
-  // Test users
-  const availableUsers = [
-    { id: 1, name: "Alice", avatar: "A", color: "bg-purple-400" },
-    { id: 2, name: "Bob", avatar: "B", color: "bg-green-400" },
-    { id: 3, name: "Charlie", avatar: "C", color: "bg-blue-400" },
-  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -68,6 +63,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4">
+          {/* Chat Name Field */}
           <div className="mb-4">
             <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
               Chat Name
@@ -82,39 +78,17 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
             />
           </div>
 
+          {/* Description Field (Replaces "Add Users") */}
           <div className="mb-4">
             <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
-              Add Users
+              Description
             </label>
-            <div className="max-h-40 overflow-y-auto border rounded p-2">
-              {availableUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center p-2 hover:bg-gray-100"
-                >
-                  <input
-                    type="checkbox"
-                    id={`user-${user.id}`}
-                    checked={selectedUsers.includes(user.id)}
-                    onChange={() => {
-                      setSelectedUsers((prev) =>
-                        prev.includes(user.id)
-                          ? prev.filter((id) => id !== user.id)
-                          : [...prev, user.id]
-                      );
-                    }}
-                    className="mr-2"
-                  />
-                  <label
-                    htmlFor={`user-${user.id}`}
-                    className="flex items-center cursor-pointer"
-                  >
-                    <Avatar color={user.color} text={user.avatar} size="sm" />
-                    <span className="font-['Inter'] ml-2">{user.name}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              placeholder="Enter a description (optional)"
+            />
           </div>
 
           <div className="flex justify-end">
@@ -139,9 +113,11 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 };
 
 const ChatRoom = () => {
-  const [chats, setChats] = useState(CHATS_DATA);
-  const [messages, setMessages] = useState(MESSAGES_DATA);
-  const [currentChatId, setCurrentChatId] = useState(1);
+  // Start with empty arrays; no dummy data
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
+  // No chat selected initially => triggers EmptyState
+  const [currentChatId, setCurrentChatId] = useState(null);
   const [newMessage, setNewMessage] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -151,34 +127,29 @@ const ChatRoom = () => {
 
   const messageContainerRef = useRef(null);
 
-  // Get current chat data
-  const currentChat =
-    chats.find((chat) => chat.id === currentChatId) || chats[0];
+  // Identify the current chat
+  const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
 
-  // Filter chats based on search and filter tab
+  // Filter chats
   const getFilteredChats = () => {
     let filtered = [...chats];
-
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (chat) =>
           chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+          (chat.lastMessage &&
+            chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
-
-    // Tab filter
     if (activeFilter === "unread") {
       filtered = filtered.filter((chat) => chat.unread);
     }
-
     return filtered;
   };
 
-  // Handle sending a new message
+  // Send a new message locally
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !currentChatId) return;
 
     const newMsg = {
       id: messages.length + 1,
@@ -186,40 +157,24 @@ const ChatRoom = () => {
       fromUser: true,
       timestamp: new Date(),
     };
-
     setMessages([...messages, newMsg]);
     setNewMessage("");
 
-    // Update last message in chat list
+    // Update last message in the chat list
     const updatedChats = chats.map((chat) =>
       chat.id === currentChatId
         ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
         : chat
     );
     setChats(updatedChats);
-
-    // Simulate response (in a real app, this would come from a backend)
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          content:
-            "Thanks for your message! Our team will get back to you shortly.",
-          fromUser: false,
-          sender: currentChat.avatarText,
-          senderColor: currentChat.avatarColor,
-          timestamp: new Date(),
-        },
-      ]);
-    }, 1500);
   };
 
-  // Create a new chat
+  // Create a new chat locally
   const handleCreateChat = (chatData) => {
     const newChat = {
       id: chats.length + 1,
       name: chatData.name,
+      description: chatData.description || "",
       avatarColor: `bg-${
         ["green", "blue", "purple", "cyan", "yellow"][
           Math.floor(Math.random() * 5)
@@ -229,13 +184,13 @@ const ChatRoom = () => {
       lastMessage: "Start a conversation...",
       time: "now",
       unread: false,
-      info: `${chatData.members.length + 1} Members`,
+      info: "1 Member", // or more if you want
     };
 
     setChats([newChat, ...chats]);
     setCurrentChatId(newChat.id);
 
-    // Reset messages for new chat
+    // Reset messages
     setMessages([]);
 
     // On mobile, hide sidebar after selecting a chat
@@ -244,7 +199,7 @@ const ChatRoom = () => {
     }
   };
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll messages
   useEffect(() => {
     if (messageContainerRef.current) {
       messageContainerRef.current.scrollTop =
@@ -252,24 +207,22 @@ const ChatRoom = () => {
     }
   }, [messages]);
 
-  // Handle clicking on a chat
+  // Handle selecting a chat
   const handleChatClick = (chatId) => {
     setCurrentChatId(chatId);
-
-    // Mark as read
     setChats(
       chats.map((chat) =>
         chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
 
-    // On mobile, hide sidebar after selecting a chat
+    // On mobile, hide sidebar after selecting
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
-  // Check screen size on mount and window resize
+  // Handle resizing
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -292,7 +245,7 @@ const ChatRoom = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [currentChatId]);
 
-  // Toggle sidebars
+  // Toggles
   const toggleSidebar = () => setShowSidebar(!showSidebar);
   const toggleChatInfo = () => setShowChatInfo(!showChatInfo);
 
@@ -316,19 +269,23 @@ const ChatRoom = () => {
           />
         )}
 
-        {/* Chat Window with toggles for mobile */}
-        <ChatWindow
-          messages={messages}
-          currentChat={currentChat}
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          onSendMessage={handleSendMessage}
-          messageContainerRef={messageContainerRef}
-          toggleSidebar={toggleSidebar}
-          toggleChatInfo={toggleChatInfo}
-          showSidebar={showSidebar}
-          showChatInfo={showChatInfo}
-        />
+        {/* Chat Window or Empty State */}
+        {currentChatId ? (
+          <ChatWindow
+            messages={messages}
+            currentChat={currentChat}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            onSendMessage={handleSendMessage}
+            messageContainerRef={messageContainerRef}
+            toggleSidebar={toggleSidebar}
+            toggleChatInfo={toggleChatInfo}
+            showSidebar={showSidebar}
+            showChatInfo={showChatInfo}
+          />
+        ) : (
+          <EmptyState />
+        )}
 
         {/* Right Sidebar - conditionally shown */}
         {showChatInfo && currentChatId && <ChatInfo group={currentChat} />}
