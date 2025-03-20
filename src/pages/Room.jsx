@@ -113,6 +113,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 };
 
 const ChatRoom = () => {
+  console.log(localStorage.getItem('user_id'))
   // Start with empty arrays; no dummy data
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);

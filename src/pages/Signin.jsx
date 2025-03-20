@@ -35,6 +35,8 @@ export const Signin = () => {
       if (response.data.status === "success") {
         showToastSuccess("Login successful");
         login(response.data?.token);
+        localStorage.setItem('user_id', response.data.user?.id)
+        console.log(2222, localStorage.getItem('user_id'))
         navigate("/");
       }
     } catch (err) {
@@ -57,6 +59,9 @@ export const Signin = () => {
       );
       if (result.data.status === "success") {
         showToastSuccess("Login successful");
+        localStorage.setItem('user_id', result.data.user?.id)
+        console.log(3333, localStorage.getItem('user_id'))
+
         login(result.data?.token);
         navigate("/");
       }
