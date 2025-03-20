@@ -77,7 +77,7 @@ export const Signin = () => {
   };
 
   const inputStyle =
-    "w-full rounded-[6px] lg:rounded-[10px] p-[0.5em] font-['Inter'] lg:text-[1.35rem] text-[#757575]";
+    "w-full rounded-[6px] lg:rounded-[10px] p-[0.5em] font-['Inter'] lg:text-[1.35rem] placeholder-[#757575]";
 
   const buttonShadow = { boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)" };
 
