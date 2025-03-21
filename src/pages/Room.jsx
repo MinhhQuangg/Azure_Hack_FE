@@ -6,6 +6,10 @@ import ChatWindow from "../components/chatroom/ChatWindow.jsx";
 import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
+import axios from "axios";
+import {
+  showToastError,
+} from "../components/common/ShowToast";
 
 // Empty state component displayed if no chat is selected
 const EmptyState = () => {
@@ -113,7 +117,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 };
 
 const ChatRoom = () => {
-  console.log(localStorage.getItem('user_id'))
+  const userId = localStorage.getItem('user_id')
   // Start with empty arrays; no dummy data
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -129,7 +133,34 @@ const ChatRoom = () => {
   const messageContainerRef = useRef(null);
 
   // Identify the current chat
+  console.log('......', chats)
   const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
+
+  // Load all most current chats to side bar
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const allChats = await axios.get(`http://localhost:3000/chatroom/user/${userId}`)
+        const newChats = allChats.data?.chatRooms.map(chat => chat.chatRoom) || [];
+
+        const statuses = await Promise.all(
+          newChats.map(chat => axios.get(`http://localhost:3000/chatroom/${chat.id}/getReadStatus/${userId}`))
+        );
+        
+        // Attach read status to chats
+        newChats.forEach((chat, index) => {
+          chat.unread = statuses[index].data.unread;
+        });
+
+        setChats([...chats, ...newChats])
+      }
+      catch (err) {
+        showToastError(err.response?.data?.message)
+      }
+    }
+
+    fetchChats();
+  }, []);
 
   // Filter chats
   const getFilteredChats = () => {
@@ -171,25 +202,35 @@ const ChatRoom = () => {
   };
 
   // Create a new chat locally
-  const handleCreateChat = (chatData) => {
-    const newChat = {
-      id: chats.length + 1,
+  const handleCreateChat = async (chatData) => {
+    const data = {
       name: chatData.name,
       description: chatData.description || "",
+      adminId: userId,
       avatarColor: `bg-${
         ["green", "blue", "purple", "cyan", "yellow"][
           Math.floor(Math.random() * 5)
         ]
       }-400`,
       avatarText: chatData.name.charAt(0).toUpperCase(),
-      lastMessage: "Start a conversation...",
-      time: "now",
-      unread: false,
-      info: "1 Member", // or more if you want
-    };
+      lastMessage: "Start a conversation..."
+    }
 
-    setChats([newChat, ...chats]);
-    setCurrentChatId(newChat.id);
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/chatroom",
+        data
+      );
+      if (response.status === 201) {        
+        const newChat = response.data?.chatroom;
+        newChat.unread = true;
+        setChats([newChat, ...chats]);
+        setCurrentChatId(newChat.id);
+      }
+    } catch (err) {
+      showToastError(err.response?.data?.message);
+      console.log(err);
+    }
 
     // Reset messages
     setMessages([]);
@@ -210,10 +251,12 @@ const ChatRoom = () => {
 
   // Handle selecting a chat
   const handleChatClick = (chatId) => {
+    console.log(chats, 11111)
     setCurrentChatId(chatId);
     setChats(
-      chats.map((chat) =>
+      chats.map((chat) => {
         chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
+        }
       )
     );
 

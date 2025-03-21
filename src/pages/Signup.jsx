@@ -33,6 +33,7 @@ const Signup = () => {
       console.log(response);
       if (response.data?.status === "success") {
         showToastSuccess(response.data?.message);
+        localStorage.setItem('user_id', response.data.user?.id)
         login(response.data?.token);
         navigate("/");
       }

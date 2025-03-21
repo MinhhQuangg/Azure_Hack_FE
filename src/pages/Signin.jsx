@@ -36,7 +36,6 @@ export const Signin = () => {
         showToastSuccess("Login successful");
         login(response.data?.token);
         localStorage.setItem('user_id', response.data.user?.id)
-        console.log(2222, localStorage.getItem('user_id'))
         navigate("/");
       }
     } catch (err) {
