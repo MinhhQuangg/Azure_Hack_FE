@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { logo } from "../assets";
 import NavBar from "../components/NavBar";
 
-const ErrorPage = () => {
+const Error = () => {
   return (
     <div className="flex flex-col h-[100vh] justify-center">
       <NavBar />
@@ -39,4 +39,4 @@ const ErrorPage = () => {
   );
 };
 
-export default ErrorPage;
+export default Error;

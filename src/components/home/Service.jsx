@@ -1,14 +1,17 @@
 import React from "react";
 import { styles } from "../../styles";
 import { earth, serviceOne, translateIcon } from "../../assets";
+import { useNavigate } from "react-router-dom";
 
 const Service = () => {
-  const buttonStyle = `mt-5 lg:mt-0 bg-primary hover:bg-[#FFF48D] py-2 font-semibold rounded-md font-['Inter'] text-sm sm:text-base lg:text-[1.15rem] transition-all duration-150`;
+  const buttonStyle = `mt-5 lg:mt-0 bg-primary hover:bg-[#FFF48D] py-2 font-semibold rounded-md font-['Inter'] text-sm sm:text-base lg:text-[1.15rem] transition-all duration-150 text-center`;
   const cardTitleStyle =
     "font-['Montserrat'] font-bold text-lg sm:text-xl lg:text-[1.45rem] leading-tight sm:leading-[1.5rem] lg:leading-[1.75rem]";
   const cardLabelStyle =
     "font-['Inter'] text-sm sm:text-base lg:text-[1.15rem]";
   const boxShadow = { boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)" };
+
+  const navigate = useNavigate();
 
   const serviceCards = [
     {
@@ -20,6 +23,8 @@ const Service = () => {
       buttonText: "Supported Languages →",
       image: serviceOne,
       icon: null,
+      toLink:
+        "https://learn.microsoft.com/en-us/azure/ai-services/translator/language-support",
     },
     {
       id: "communicate",
@@ -30,6 +35,7 @@ const Service = () => {
       buttonText: "Start Chatting →",
       image: null,
       icon: translateIcon,
+      toLink: "/Chat",
     },
     {
       id: "engage",
@@ -40,6 +46,7 @@ const Service = () => {
       buttonText: "Language Preference →",
       image: null,
       icon: earth,
+      toLink: "/Chat",
     },
   ];
 
@@ -56,9 +63,9 @@ const Service = () => {
               <div className={cardTitleStyle}>{card.title}</div>
               <div className={cardLabelStyle}>{card.description}</div>
             </div>
-            <button type="submit" className={buttonStyle} style={boxShadow}>
+            <a href={card.toLink} target="_blank" className={buttonStyle} style={boxShadow}>
               {card.buttonText}
-            </button>
+            </a>
           </div>
           <div className="hidden md:flex items-center justify-center h-full">
             <img
@@ -92,7 +99,13 @@ const Service = () => {
             </div>
             <div className={cardLabelStyle}>{card.description}</div>
           </div>
-          <button type="submit" className={buttonStyle} style={boxShadow}>
+          <button
+            onClick={() => {
+              navigate(card.toLink);
+            }}
+            className={buttonStyle}
+            style={boxShadow}
+          >
             {card.buttonText}
           </button>
         </div>
