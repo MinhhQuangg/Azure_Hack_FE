@@ -14,6 +14,7 @@ import {
   FaSave,
 } from "react-icons/fa";
 import { showToastError, showToastSuccess } from "../common/ShowToast";
+import axios from "axios";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -51,7 +52,7 @@ const ActionButton = ({ onClick, primary, children, className }) => (
 );
 
 const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
-  const { id, name, isOnline, isAdmin: memberIsAdmin, avatarColor } = member;
+  const { id, given_name, isOnline, isAdmin: memberIsAdmin, profile_picture } = member;
 
   const isCurrentUser = id === currentUserId;
 
@@ -59,12 +60,12 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center">
         <Avatar
-          color={avatarColor}
-          text={name.charAt(0).toUpperCase()}
+          text={given_name.charAt(0).toUpperCase()}
           size="sm"
+          url={profile_picture}
         />
         <span className="font-['Inter'] ml-2">
-          {name}
+          {given_name}
           {isCurrentUser ? " (You)" : ""}
         </span>
       </div>
@@ -100,7 +101,9 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   );
 };
 
-const ChatInfo = ({ groupId }) => {
+const ChatInfo = ({groupId}) => {
+  const userId = localStorage.getItem('user_id')
+
   const [language, setLanguage] = useState("English");
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
@@ -109,13 +112,16 @@ const ChatInfo = ({ groupId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joinRequests, setJoinRequests] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState("user-123");
+  const [currentUserId, setCurrentUserId] = useState(userId);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
 
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
+        // fetch member list
+        const members = await axios.get(`http://localhost:3000/chatroom/${groupId}/members`);
+ 
         setLoading(true);
         setTimeout(() => {
           const mockData = {
@@ -123,24 +129,25 @@ const ChatInfo = ({ groupId }) => {
             name: "Group 1",
             createdAt: "2025-03-03T12:00:00Z",
             inviteLink: "chatlas/supercoolplaceholderlink/id.com",
-            members: [
-              {
-                id: "user-123",
-                name: "User123",
-                isAdmin: true,
-                isOnline: true,
-                avatarColor: "bg-[#25A59F]",
-                joined: "3-3-2025",
-              },
-              {
-                id: "person-1",
-                name: "Person 1",
-                isAdmin: false,
-                isOnline: true,
-                avatarColor: "bg-[#A4F2FA]",
-                joined: "3-5-2025",
-              },
-            ],
+            // members: [
+            //   {
+            //     id: "user-123",
+            //     name: "User123",
+            //     isAdmin: true,
+            //     isOnline: true,
+            //     avatarColor: "bg-[#25A59F]",
+            //     joined: "3-3-2025",
+            //   },
+            //   {
+            //     id: "person-1",
+            //     name: "Person 1",
+            //     isAdmin: false,
+            //     isOnline: true,
+            //     avatarColor: "bg-[#A4F2FA]",
+            //     joined: "3-5-2025",
+            //   },
+            // ],
+            members: members.data?.members,
             joinRequests: [
               {
                 id: "person-2",
@@ -158,7 +165,7 @@ const ChatInfo = ({ groupId }) => {
           setLoading(false);
         }, 300);
       } catch (err) {
-        setError("Failed to load group data");
+        setError("Failed to load group data: ", err.message);
         setLoading(false);
       }
     };
@@ -166,9 +173,14 @@ const ChatInfo = ({ groupId }) => {
     fetchGroupData();
   }, [groupId]);
 
-  const isCurrentUserAdmin = groupData?.members.some(
-    (member) => member.id === currentUserId && member.isAdmin
-  );
+
+  let isCurrentUserAdmin = false
+  axios.get(`http://localhost:3000/chatroom/${groupId}/admin/${userId}`)
+  .then((response) => {
+    isCurrentUserAdmin = response.data?.isAdmin
+    console.log(isCurrentUserAdmin)
+  })
+
 
   const handleLeaveGroup = async () => {
     try {

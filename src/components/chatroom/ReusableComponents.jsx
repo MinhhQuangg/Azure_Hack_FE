@@ -1,11 +1,19 @@
-const Avatar = ({ color, text, size = "md" }) => {
+const Avatar = ({ text, size = "md", url }) => {
   const sizeClasses = {
     sm: "h-8 w-8",
     md: "h-10 w-10",
     lg: "h-12 w-12",
   };
 
-  return (
+  const color = ["bg-green", "bg-[#A4F2FA]", "bg-cyan", "bg-yellow", "bg-[#A4F2FA]"][Math.floor(Math.random() * 5)]
+
+  return url ? (
+    <img
+      src={url}
+      alt="Avatar"
+      className={`${sizeClasses[size]} rounded-full object-cover`}
+    />
+  ) : (
     <div
       className={`${color} ${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-bold`}
     >

@@ -133,7 +133,6 @@ const ChatRoom = () => {
   const messageContainerRef = useRef(null);
 
   // Identify the current chat
-  console.log('......', chats)
   const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
 
   // Load all most current chats to side bar
@@ -144,7 +143,7 @@ const ChatRoom = () => {
         const newChats = allChats.data?.chatRooms.map(chat => chat.chatRoom) || [];
 
         const statuses = await Promise.all(
-          newChats.map(chat => axios.get(`http://localhost:3000/chatroom/${chat.id}/getReadStatus/${userId}`))
+          newChats.map(chat => axios.get(`http://localhost:3000/chatroom/${chat.id}/readStatus/${userId}`))
         );
         
         // Attach read status to chats
@@ -208,7 +207,7 @@ const ChatRoom = () => {
       description: chatData.description || "",
       adminId: userId,
       avatarColor: `bg-${
-        ["green", "blue", "purple", "cyan", "yellow"][
+        ["green", "purple", "cyan", "yellow", "blue"][
           Math.floor(Math.random() * 5)
         ]
       }-400`,
@@ -250,15 +249,14 @@ const ChatRoom = () => {
   }, [messages]);
 
   // Handle selecting a chat
-  const handleChatClick = (chatId) => {
-    console.log(chats, 11111)
+  const handleChatClick = async (chatId) => {
     setCurrentChatId(chatId);
     setChats(
-      chats.map((chat) => {
-        chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
-        }
+      chats.map((chat) => chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
+
+    console.log(chatId, currentChat?.id)
 
     // On mobile, hide sidebar after selecting
     if (window.innerWidth < 768) {
@@ -332,7 +330,7 @@ const ChatRoom = () => {
         )}
 
         {/* Right Sidebar - conditionally shown */}
-        {showChatInfo && currentChatId && <ChatInfo group={currentChat} />}
+        {(showChatInfo && currentChatId) && <ChatInfo groupId={currentChatId} />}
       </div>
 
       {/* New Chat Modal */}

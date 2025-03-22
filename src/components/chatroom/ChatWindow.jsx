@@ -196,7 +196,6 @@ const ChatWindow = ({
   messageContainerRef,
   toggleSidebar,
   toggleChatInfo,
-  showSidebar,
   showChatInfo,
   onFileUpload,
   onImageUpload,
