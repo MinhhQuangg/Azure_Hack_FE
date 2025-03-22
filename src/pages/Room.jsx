@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import Avatar from "../components/chatroom/ReusableComponents.jsx";
 import Sidebar from "../components/chatroom/Sidebar.jsx";
 import ChatWindow from "../components/chatroom/ChatWindow.jsx";
-import { CHATS_DATA, MESSAGES_DATA } from "../components/chatroom/Data.jsx";
+import { CHATS_DATA, ALL_MESSAGES } from "../components/chatroom/Data.jsx";
 import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
+import RequestJoin from "../components/chatroom/RequestJoin.jsx";
+import WaitingApproval from "../components/chatroom/WaitingApproval.jsx";
+import { useParams, useNavigate } from "react-router-dom";
 
 const EmptyState = () => {
   return (
@@ -26,7 +29,6 @@ const EmptyState = () => {
   );
 };
 
-// Modal component for creating new chats
 const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
   const [chatName, setChatName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -47,7 +49,6 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
     onClose();
   };
 
-  // Test users
   const availableUsers = [
     { id: 1, name: "Alice", avatar: "A", color: "bg-purple-400" },
     { id: 2, name: "Bob", avatar: "B", color: "bg-green-400" },
@@ -139,27 +140,68 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 };
 
 const ChatRoom = () => {
-  const [chats, setChats] = useState(CHATS_DATA);
-  const [messages, setMessages] = useState(MESSAGES_DATA);
-  const [currentChatId, setCurrentChatId] = useState(1);
+  const { inviteLink } = useParams();
+  const navigate = useNavigate();
+
+  const [chats, setChats] = useState(
+    CHATS_DATA.map((chat) => ({
+      ...chat,
+      messages: ALL_MESSAGES[chat.id] || [],
+      status: "active",
+    }))
+  );
+
+  const [currentChatId, setCurrentChatId] = useState(null);
   const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
+  const [showJoinRequest, setShowJoinRequest] = useState(true);
+  const [invitedChatDetails, setInvitedChatDetails] = useState({
+    id: 999,
+    name: "Invited Chat Room",
+    avatarColor: "bg-blue-400",
+    avatarText: "I",
+    lastMessage: "You've been invited to this chat",
+    time: "now",
+    unread: false,
+    messages: [],
+    status: "invited",
+  });
 
   const messageContainerRef = useRef(null);
 
-  // Get current chat data
-  const currentChat =
-    chats.find((chat) => chat.id === currentChatId) || chats[0];
+  useEffect(() => {
+    if (inviteLink) {
+      const mockInvitedChat = {
+        id: 999,
+        name: "Invited Chat Room",
+        avatarColor: "bg-blue-400",
+        avatarText: "I",
+        lastMessage: "You've been invited to this chat",
+        time: "now",
+        unread: false,
+        messages: [],
+        status: "invited",
+      };
 
-  // Filter chats based on search and filter tab
+      setInvitedChatDetails(mockInvitedChat);
+      setShowJoinRequest(true);
+    } else {
+      setCurrentChatId(chats.length > 0 ? chats[0].id : null);
+    }
+  }, [inviteLink]);
+
+  const currentChat = currentChatId
+    ? chats.find((chat) => chat.id === currentChatId) || null
+    : null;
+
   const getFilteredChats = () => {
     let filtered = [...chats];
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (chat) =>
@@ -168,7 +210,6 @@ const ChatRoom = () => {
       );
     }
 
-    // Tab filter
     if (activeFilter === "unread") {
       filtered = filtered.filter((chat) => chat.unread);
     }
@@ -176,49 +217,82 @@ const ChatRoom = () => {
     return filtered;
   };
 
-  // Handle sending a new message
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !currentChatId) return;
 
     const newMsg = {
-      id: messages.length + 1,
+      id: Date.now(),
       content: newMessage,
       fromUser: true,
       timestamp: new Date(),
     };
 
-    setMessages([...messages, newMsg]);
-    setNewMessage("");
+    const updatedChats = chats.map((chat) => {
+      if (chat.id === currentChatId) {
+        return {
+          ...chat,
+          messages: [...(chat.messages || []), newMsg],
+          lastMessage: `You: ${newMessage}`,
+          time: "now",
+        };
+      }
+      return chat;
+    });
 
-    // Update last message in chat list
-    const updatedChats = chats.map((chat) =>
-      chat.id === currentChatId
-        ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
-        : chat
-    );
     setChats(updatedChats);
+    setNewMessage("");
+    setIsTyping(true);
+    const prevChats = updatedChats;
+    setChats(
+      prevChats.map((chat) => {
+        if (chat.id === currentChatId) {
+          const responseMsg = {
+            id: Date.now(),
+            content: `Response from ${chat.name}: Thanks for your message! We'll get back to you shortly.`,
+            fromUser: false,
+            sender: chat.avatarText,
+            senderColor: chat.avatarColor,
+            typing: true,
+          };
 
-    // Simulate response (in a real app, this would come from a backend)
+          return {
+            ...chat,
+            messages: [...chat.messages, responseMsg],
+          };
+        }
+        return chat;
+      })
+    );
+
     setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          content:
-            "Thanks for your message! Our team will get back to you shortly.",
-          fromUser: false,
-          sender: currentChat.avatarText,
-          senderColor: currentChat.avatarColor,
-          timestamp: new Date(),
-        },
-      ]);
+      setIsTyping(false);
+      setChats(
+        prevChats.map((chat) => {
+          if (chat.id === currentChatId) {
+            const responseMsg = {
+              id: Date.now(),
+              content: `Response from ${chat.name}: Thanks for your message! We'll get back to you shortly.`,
+              fromUser: false,
+              sender: chat.avatarText,
+              senderColor: chat.avatarColor,
+              typing: false,
+              timestamp: new Date(),
+            };
+
+            return {
+              ...chat,
+              messages: [...chat.messages, responseMsg],
+            };
+          }
+          return chat;
+        })
+      );
     }, 1500);
   };
 
-  // Create a new chat
   const handleCreateChat = (chatData) => {
     const newChat = {
-      id: chats.length + 1,
+      id: Date.now(),
       name: chatData.name,
       avatarColor: `bg-${
         ["green", "blue", "purple", "cyan", "yellow"][
@@ -230,51 +304,92 @@ const ChatRoom = () => {
       time: "now",
       unread: false,
       info: `${chatData.members.length + 1} Members`,
+      messages: [
+        {
+          id: Date.now(),
+          content: `Welcome to ${chatData.name}! This is a new chat.`,
+          fromUser: false,
+          sender: chatData.name.charAt(0).toUpperCase(),
+          senderColor: `bg-${
+            ["green", "blue", "purple", "cyan", "yellow"][
+              Math.floor(Math.random() * 5)
+            ]
+          }-400`,
+          timestamp: new Date(),
+        },
+      ],
+      status: "active",
     };
 
     setChats([newChat, ...chats]);
     setCurrentChatId(newChat.id);
 
-    // Reset messages for new chat
-    setMessages([]);
-
-    // On mobile, hide sidebar after selecting a chat
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (messageContainerRef.current) {
+    if (messageContainerRef.current && currentChat?.messages) {
       messageContainerRef.current.scrollTop =
         messageContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [currentChat?.messages]);
 
-  // Handle clicking on a chat
   const handleChatClick = (chatId) => {
     setCurrentChatId(chatId);
 
-    // Mark as read
     setChats(
       chats.map((chat) =>
         chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
 
-    // On mobile, hide sidebar after selecting a chat
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
-  // Check screen size on mount and window resize
+  const handleJoinRequest = (userName) => {
+    console.log(
+      `User ${userName} requested to join chat ${invitedChatDetails?.name}`
+    );
+
+    const newChat = {
+      ...invitedChatDetails,
+      id: Date.now(),
+      status: "pending",
+      messages: [
+        {
+          id: Date.now(),
+          content: `You requested to join ${invitedChatDetails.name}. Waiting for approval...`,
+          fromUser: false,
+          sender: "System",
+          senderColor: "bg-gray-400",
+          timestamp: new Date(),
+        },
+      ],
+    };
+
+    setChats([newChat, ...chats]);
+    setCurrentChatId(newChat.id);
+    setShowJoinRequest(false);
+  };
+
+  const handleCancelJoinRequest = () => {
+    setShowJoinRequest(false);
+
+    if (chats.length > 0) {
+      setCurrentChatId(chats[0].id);
+    } else {
+      setCurrentChatId(null);
+    }
+  };
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setShowChatInfo(false);
-        // Only show one panel at a time on mobile
         if (currentChatId && showSidebar) {
           setShowSidebar(false);
         }
@@ -292,17 +407,67 @@ const ChatRoom = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [currentChatId]);
 
-  // Toggle sidebars
   const toggleSidebar = () => setShowSidebar(!showSidebar);
   const toggleChatInfo = () => setShowChatInfo(!showChatInfo);
+
+  if (showJoinRequest && invitedChatDetails) {
+    return (
+      <div className="flex flex-col h-screen bg-gray-100">
+        <NavBar />
+        <div className="flex flex-1 overflow-hidden">
+          {showSidebar && (
+            <Sidebar
+              chats={getFilteredChats()}
+              currentChatId={currentChatId}
+              onChatClick={handleChatClick}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+              onNewChat={() => setIsNewChatModalOpen(true)}
+            />
+          )}
+          <RequestJoin
+            chatName={invitedChatDetails.name}
+            onJoinRequest={handleJoinRequest}
+            onCancel={handleCancelJoinRequest}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const renderMainContent = () => {
+    if (!currentChatId) {
+      return <EmptyState />;
+    }
+
+    if (currentChat?.status === "pending") {
+      return <WaitingApproval chatName={currentChat.name} />;
+    }
+
+    return (
+      <ChatWindow
+        messages={currentChat?.messages || []}
+        isTyping={isTyping}
+        currentChat={currentChat}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        onSendMessage={handleSendMessage}
+        messageContainerRef={messageContainerRef}
+        toggleSidebar={toggleSidebar}
+        toggleChatInfo={toggleChatInfo}
+        showSidebar={showSidebar}
+        showChatInfo={showChatInfo}
+      />
+    );
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <NavBar />
 
-      {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - conditionally shown */}
         {showSidebar && (
           <Sidebar
             chats={getFilteredChats()}
@@ -316,25 +481,13 @@ const ChatRoom = () => {
           />
         )}
 
-        {/* Chat Window with toggles for mobile */}
-        <ChatWindow
-          messages={messages}
-          currentChat={currentChat}
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          onSendMessage={handleSendMessage}
-          messageContainerRef={messageContainerRef}
-          toggleSidebar={toggleSidebar}
-          toggleChatInfo={toggleChatInfo}
-          showSidebar={showSidebar}
-          showChatInfo={showChatInfo}
-        />
+        {renderMainContent()}
 
-        {/* Right Sidebar - conditionally shown */}
-        {showChatInfo && currentChatId && <ChatInfo group={currentChat} />}
+        {showChatInfo && currentChatId && currentChat?.status !== "pending" && (
+          <ChatInfo group={currentChat} />
+        )}
       </div>
 
-      {/* New Chat Modal */}
       <NewChatModal
         isOpen={isNewChatModalOpen}
         onClose={() => setIsNewChatModalOpen(false)}

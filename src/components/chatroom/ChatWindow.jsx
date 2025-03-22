@@ -53,102 +53,12 @@ const MessageBubble = ({ message }) => {
             ></div>
           </div>
           <div className="font-['Inter'] text-xs text-[#65686C] mt-1">
-            Person is typing...
+            {message.sender} is typing...
           </div>
         </div>
       </div>
     );
   }
-
-  // if (message.fileUrl) {
-  //   return (
-  //     <div
-  //       className={`flex mb-4 ${
-  //         message.fromUser ? "justify-end" : "justify-start"
-  //       }`}
-  //     >
-  //       {!message.fromUser && (
-  //         <div className="mr-2">
-  //           <Avatar
-  //             color={message.senderColor}
-  //             text={message.sender}
-  //             size="sm"
-  //           />
-  //         </div>
-  //       )}
-
-  //       <div
-  //         className={`rounded-lg p-3 inline-block max-w-md ${
-  //           message.fromUser
-  //             ? "bg-yellow-300 text-black"
-  //             : "bg-gray-200 text-black"
-  //         }`}
-  //       >
-  //         <div className="flex items-center">
-  //           <FaPaperclip className="mr-2" />
-  //           <a
-  //             href={message.fileUrl}
-  //             download={message.fileName}
-  //             className="text-blue-600 underline hover:text-blue-800"
-  //           >
-  //             {message.fileName || "Download file"}
-  //           </a>
-  //         </div>
-  //         {message.content && <div className="mt-2">{message.content}</div>}
-  //         <div className="text-xs text-gray-600 mt-1 text-right">
-  //           {message.timestamp
-  //             ? new Date(message.timestamp).toLocaleTimeString([], {
-  //                 hour: "2-digit",
-  //                 minute: "2-digit",
-  //               })
-  //             : ""}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  // if (message.imageUrl) {
-  //   return (
-  //     <div
-  //       className={`flex mb-4 ${
-  //         message.fromUser ? "justify-end" : "justify-start"
-  //       }`}
-  //     >
-  //       {!message.fromUser && (
-  //         <div className="mr-2">
-  //           <Avatar
-  //             color={message.senderColor}
-  //             text={message.sender}
-  //             size="sm"
-  //           />
-  //         </div>
-  //       )}
-  //       <div
-  //         className={`rounded-lg p-3 inline-block max-w-md ${
-  //           message.fromUser
-  //             ? "bg-yellow-300 text-black"
-  //             : "bg-gray-200 text-black"
-  //         }`}
-  //       >
-  //         <img
-  //           src={message.imageUrl}
-  //           alt="Shared image"
-  //           className="max-w-full rounded-md"
-  //         />
-  //         {message.content && <div className="mt-2">{message.content}</div>}
-  //         <div className="text-xs text-gray-600 mt-1 text-right">
-  //           {message.timestamp
-  //             ? new Date(message.timestamp).toLocaleTimeString([], {
-  //                 hour: "2-digit",
-  //                 minute: "2-digit",
-  //               })
-  //             : ""}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div
