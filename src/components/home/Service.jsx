@@ -46,7 +46,8 @@ const Service = forwardRef((props, ref) => {
       buttonText: "Language Preference →",
       image: null,
       icon: earth,
-      toLink: "/Chat",
+      toLink:
+        "https://learn.microsoft.com/en-us/azure/ai-services/translator/language-support",
     },
   ];
 
@@ -104,15 +105,26 @@ const Service = forwardRef((props, ref) => {
             </div>
             <div className={cardLabelStyle}>{card.description}</div>
           </div>
-          <button
-            onClick={() => {
-              navigate(card.toLink);
-            }}
-            className={buttonStyle}
-            style={boxShadow}
-          >
-            {card.buttonText}
-          </button>
+          {card.id === "engage" ? (
+            <a
+              href={card.toLink}
+              target="_blank"
+              className={buttonStyle}
+              style={boxShadow}
+            >
+              {card.buttonText}
+            </a>
+          ) : (
+            <button
+              onClick={() => {
+                navigate(card.toLink);
+              }}
+              className={buttonStyle}
+              style={boxShadow}
+            >
+              {card.buttonText}
+            </button>
+          )}
         </div>
       );
     }
