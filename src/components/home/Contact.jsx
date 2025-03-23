@@ -27,19 +27,10 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setFormStatus({
-      submitted: true,
-      error: false,
-      message: "Thank you for your message! We'll get back to you soon.",
-    });
-  };
-
-  const inputStyles = `w-full font-["Inter"] placeholder-["Inter"] text-base md:text-lg px-4 py-3 border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200`;
+  const inputStyles = `w-full font-["Inter"] placeholder-["Inter"] text-base md:text-lg px-4 py-3 border border-gray-400 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200`;
 
   const buttonStyles = {
-    primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.45rem] font-bold font-["Inter"] py-2 px-6 md:py-3 md:px-8 rounded-[10px] transition-all duration-300 w-full md:w-auto`,
+    primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.25rem] font-semibold font-["Montserrat"] py-2 px-6 md:py-3 md:px-8 rounded-[10px] transition-all duration-300 w-full md:w-auto`,
     boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
   };
 
