@@ -155,6 +155,7 @@ const ChatRoom = () => {
         const newChats =
           allChats.data?.chatRooms.map((chat) => chat.chatRoom) || [];
 
+          console.log("Chats from server:", newChats);
         // Mark unread
         const statuses = await Promise.all(
           newChats.map((chat) =>
@@ -374,7 +375,7 @@ const ChatRoom = () => {
           <EmptyState />
         )}
 
-        {showChatInfo && currentChatId && <ChatInfo groupId={currentChatId} />}
+        {showChatInfo && currentChatId && <ChatInfo chatId={currentChatId} />}
       </div>
 
       <NewChatModal

@@ -121,7 +121,7 @@ const ChatInfo = ({chatId}) => {
     const fetchGroupData = async () => {
       try {
         // fetch chat room info
-        const response = await axios.get(`http://localhost:3000/chatroom/${chatId}`);
+        const response = await axios.get(`http://localhost:3000/chatroom/${chatId}/details`);
         const chatRoom = response.data.chatRoom;
         
         // get member and pending members list
