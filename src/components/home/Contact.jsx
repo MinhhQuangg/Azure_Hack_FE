@@ -212,7 +212,7 @@ const Contact = () => {
       <script type="text/javascript">
         (function()
         {emailjs.init({
-          publicKey: import.meta.env.VITE_EMAILJS_PUBLI_KEY,
+          publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
         })}
         )();
       </script>
