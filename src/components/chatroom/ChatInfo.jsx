@@ -186,29 +186,31 @@ const ChatInfo = ({chatId}) => {
 
   const handleUserAction = async (userId, action) => {
     try {
+      setIsUserInfoModalOpen(false);
+
       if (action === "makeAdmin") {
-        // await axios.put(`http://localhost:3000/chatroom/${chatId}/changeAdmin`,
-        //   {
-        //     newAdminId: userId
-        //   }
-        // )
-        console.log(1111, userId)
+        await axios.put(`http://localhost:3000/chatroom/${chatId}/changeAdmin`,
+          {
+            newAdminId: userId
+          }
+        )
         setGroupData((prev) => ({
+          ...prev,
           members: prev.members.map((member) =>
             member.id === userId ? { ...member, isAdmin: true } : member
           ),
+          adminId: userId
         }));
 
-        setCurrentUserId(false);
+        setIsCurrentUserAdmin(false);
 
       } else if (action === "removeMember") {
-        // await axios.delete(`http://localhost:3000/chatroom/${chatId}/members/${userId}`)
+        await axios.delete(`http://localhost:3000/chatroom/${chatId}/members/${userId}`)
         setGroupData((prev) => ({
           ...prev,
           members: prev.members.filter((member) => member.id !== userId),
         }));
       }
-      setIsUserInfoModalOpen(false);
     } catch (err) {
       console.error(`Failed to ${action}`, err);
     }
