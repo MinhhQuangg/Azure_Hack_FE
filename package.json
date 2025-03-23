@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@react-oauth/google": "^0.12.1",
     "axios": "^1.8.1",
+    "emailjs": "^4.0.3",
     "jwt-decode": "^4.0.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.42.0",
     "react": "^19.0.0",
