@@ -101,7 +101,7 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   );
 };
 
-const ChatInfo = ({groupId}) => {
+const ChatInfo = ({chatId}) => {
   const userId = localStorage.getItem('user_id')
 
   const [language, setLanguage] = useState("English");
@@ -115,48 +115,38 @@ const ChatInfo = ({groupId}) => {
   const [currentUserId, setCurrentUserId] = useState(userId);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false)
 
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
-        // fetch member list
-        const members = await axios.get(`http://localhost:3000/chatroom/${groupId}/members`);
- 
+        // fetch chat room info
+        const response = await axios.get(`http://localhost:3000/chatroom/${chatId}`);
+        const chatRoom = response.data.chatRoom;
+        
+        // get member and pending members list
+        const members = []
+        const pendingMembers = []
+
+        for (const member of chatRoom.members) {
+          if (member.status == 'approved') {
+            members.push(member)
+          }
+          else if (member.status == 'pending') {
+            pendingMembers.push(member)
+          }
+        }
+
         setLoading(true);
-        setTimeout(() => {
+        setTimeout(async () => {
           const mockData = {
-            id: groupId || "group-1",
-            name: "Group 1",
-            createdAt: "2025-03-03T12:00:00Z",
-            inviteLink: "chatlas/supercoolplaceholderlink/id.com",
-            // members: [
-            //   {
-            //     id: "user-123",
-            //     name: "User123",
-            //     isAdmin: true,
-            //     isOnline: true,
-            //     avatarColor: "bg-[#25A59F]",
-            //     joined: "3-3-2025",
-            //   },
-            //   {
-            //     id: "person-1",
-            //     name: "Person 1",
-            //     isAdmin: false,
-            //     isOnline: true,
-            //     avatarColor: "bg-[#A4F2FA]",
-            //     joined: "3-5-2025",
-            //   },
-            // ],
-            members: members.data?.members,
-            joinRequests: [
-              {
-                id: "person-2",
-                name: "Person 2",
-                requestedAt: "2025-03-15T09:45:00Z",
-                avatarColor: "bg-[#93c5fd]",
-                joined: "",
-              },
-            ],
+            id: chatRoom.id,
+            name: chatRoom.name,
+            createdAt: chatRoom.created_at,
+            description: chatRoom.description,
+            inviteLink: `abc.com/${chatRoom.id}`,
+            members: members,
+            joinRequests: pendingMembers
           };
 
           setGroupData(mockData);
@@ -171,20 +161,21 @@ const ChatInfo = ({groupId}) => {
     };
 
     fetchGroupData();
-  }, [groupId]);
+  }, [chatId]);
 
 
-  let isCurrentUserAdmin = false
-  axios.get(`http://localhost:3000/chatroom/${groupId}/admin/${userId}`)
+  axios.get(`http://localhost:3000/chatroom/${chatId}/admin/${userId}`)
   .then((response) => {
-    isCurrentUserAdmin = response.data?.isAdmin
-    console.log(isCurrentUserAdmin)
+    const isAdmin = response.data?.isAdmin
+    setIsCurrentUserAdmin(isAdmin)
   })
-
 
   const handleLeaveGroup = async () => {
     try {
-      console.log("Left group", groupId);
+      console.log("Left group", chatId);
+
+      await axios.delete(`http://localhost:3000/chatroom/${chatId}/leave/${userId}`)
+
       showToastSuccess(`Left group successfully`);
       setIsLeaveModalOpen(false);
     } catch (err) {
@@ -195,13 +186,13 @@ const ChatInfo = ({groupId}) => {
   const handleUserAction = async (userId, action) => {
     try {
       if (action === "makeAdmin") {
-        // await api.makeUserAdmin(groupId, userId);
+        // await api.makeUserAdmin(chatId, userId);
         console.log("Made user admin", userId);
       } else if (action === "removeAdmin") {
-        // await api.removeUserAdmin(groupId, userId);
+        // await api.removeUserAdmin(chatId, userId);
         console.log("Removed admin status from user", userId);
       } else if (action === "removeMember") {
-        // await api.removeMember(groupId, userId);
+        // await api.removeMember(chatId, userId);
         console.log("Removed member", userId);
       }
       setIsUserInfoModalOpen(false);
@@ -231,14 +222,12 @@ const ChatInfo = ({groupId}) => {
     }
   };
 
-  const handleJoinRequest = async (requestId, accept) => {
+  const handleJoinRequest = async (userId, accept) => {
     try {
-      console.log(accept ? "Accepted" : "Rejected", "join request", requestId);
-
-      setJoinRequests((prev) => prev.filter((req) => req.id !== requestId));
+      setJoinRequests((prev) => prev.filter((req) => req.id !== userId));
 
       if (accept) {
-        const newMember = joinRequests.find((req) => req.id === requestId);
+        const newMember = joinRequests.find((req) => req.id === userId);
         setGroupData((prev) => ({
           ...prev,
           members: [
@@ -246,6 +235,25 @@ const ChatInfo = ({groupId}) => {
             { ...newMember, joined: new Date(), isAdmin: false },
           ],
         }));
+        
+        // send backend accept request
+        await axios.put(
+          `http://localhost:3000/chatroom/${chatId}/memberRequest`,
+          {
+            userId: userId,
+            status: "approved"
+          }
+        )
+        
+      }
+      else {
+        await axios.put(
+          `http://localhost:3000/chatroom/${chatId}/memberRequest`,
+          {
+            userId: userId,
+            status: "rejected"
+          }
+        )
       }
     } catch (err) {
       console.error("Failed to handle join request", err);
@@ -286,6 +294,14 @@ const ChatInfo = ({groupId}) => {
         return;
       }
 
+      // update backend
+      await axios.put(
+        `http://localhost:3000/chatroom/${chatId}`, 
+        {
+          name: newGroupName
+        }
+      )
+
       console.log("Updated group name to", newGroupName);
 
       setGroupData((prev) => ({
@@ -294,6 +310,7 @@ const ChatInfo = ({groupId}) => {
       }));
 
       setIsEditingName(false);
+
       showToastSuccess("Group name updated successfully");
     } catch (err) {
       console.error("Failed to update group name", err);
@@ -438,11 +455,11 @@ const ChatInfo = ({groupId}) => {
             >
               <div className="flex items-center">
                 <Avatar
-                  color={request.avatarColor}
-                  text={request.name.charAt(0).toUpperCase()}
+                  text={request.given_name.charAt(0).toUpperCase()}
                   size="sm"
+                  url={request.profile_picture}
                 />
-                <span className="font-['Inter'] ml-2">{request.name}</span>
+                <span className="font-['Inter'] ml-2">{request.given_name}</span>
               </div>
               <div className="flex">
                 <button

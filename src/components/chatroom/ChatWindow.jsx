@@ -288,15 +288,15 @@ const ChatWindow = ({
           </button>
 
           <Avatar
-            color={currentChat.avatarColor}
-            text={currentChat.avatarText}
+            color={currentChat.avatar_color}
+            text={currentChat.avatar_text}
           />
           <div className="ml-3">
             <h2 className="font-['Montserrat'] font-bold text-[1.35rem]">
               {currentChat.name}
             </h2>
             <p className="font-['Inter'] text-xs text-gray-500">
-              {currentChat.info || ""}
+              {currentChat.description || ""}
             </p>
           </div>
         </div>

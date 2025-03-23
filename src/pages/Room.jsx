@@ -250,13 +250,14 @@ const ChatRoom = () => {
 
   // Handle selecting a chat
   const handleChatClick = async (chatId) => {
+    console.log(chatId)
     setCurrentChatId(chatId);
     setChats(
       chats.map((chat) => chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
 
-    console.log(chatId, currentChat?.id)
+    await axios.put(`http://localhost:3000/chatroom/${chatId}/readStatus/${userId}`)
 
     // On mobile, hide sidebar after selecting
     if (window.innerWidth < 768) {
@@ -330,7 +331,7 @@ const ChatRoom = () => {
         )}
 
         {/* Right Sidebar - conditionally shown */}
-        {(showChatInfo && currentChatId) && <ChatInfo groupId={currentChatId} />}
+        {(showChatInfo && currentChatId) && <ChatInfo chatId={currentChatId} />}
       </div>
 
       {/* New Chat Modal */}
