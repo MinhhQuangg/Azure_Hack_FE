@@ -1,8 +1,9 @@
 import React from "react";
 import { styles } from "../../styles";
 import { hero } from "../../assets";
+import { useNavigate } from "react-router-dom";
 
-const Hero = () => {
+const Hero = ({ serviceRef }) => {
   const content = {
     tagline: "About Us",
     heading: "Connect Globally with Instant Translations",
@@ -14,6 +15,14 @@ const Hero = () => {
     primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.45rem] font-bold font-["Inter"] py-2 px-4 md:py-3 md:px-5 rounded-[10px] transition-all duration-100`,
     secondary: `font-normal font-["Inter"] text-base md:text-lg lg:text-[1.45rem] py-2 px-4 md:py-3 md:px-5 rounded-[10px] border border-black transition-all duration-100`,
     boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
+  };
+
+  const navigate = useNavigate();
+
+  const scrollToServiceSection = () => {
+    if (serviceRef && serviceRef.current) {
+      serviceRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (
@@ -44,11 +53,17 @@ const Hero = () => {
             type="submit"
             className={buttonStyles.primary}
             style={{ boxShadow: buttonStyles.boxShadow }}
+            onClick={() => {
+              navigate("/Chat");
+            }}
           >
             Get Started &#x2192;
           </button>
 
-          <button className={buttonStyles.secondary}>
+          <button
+            className={buttonStyles.secondary}
+            onClick={scrollToServiceSection}
+          >
             Learn More &#x2192;
           </button>
         </div>

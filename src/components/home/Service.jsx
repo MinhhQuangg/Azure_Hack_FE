@@ -1,9 +1,9 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import { styles } from "../../styles";
 import { earth, serviceOne, translateIcon } from "../../assets";
 import { useNavigate } from "react-router-dom";
 
-const Service = () => {
+const Service = forwardRef((props, ref) => {
   const buttonStyle = `mt-5 lg:mt-0 bg-primary hover:bg-[#FFF48D] py-2 font-semibold rounded-md font-['Inter'] text-sm sm:text-base lg:text-[1.15rem] transition-all duration-150 text-center`;
   const cardTitleStyle =
     "font-['Montserrat'] font-bold text-lg sm:text-xl lg:text-[1.45rem] leading-tight sm:leading-[1.5rem] lg:leading-[1.75rem]";
@@ -63,7 +63,12 @@ const Service = () => {
               <div className={cardTitleStyle}>{card.title}</div>
               <div className={cardLabelStyle}>{card.description}</div>
             </div>
-            <a href={card.toLink} target="_blank" className={buttonStyle} style={boxShadow}>
+            <a
+              href={card.toLink}
+              target="_blank"
+              className={buttonStyle}
+              style={boxShadow}
+            >
               {card.buttonText}
             </a>
           </div>
@@ -114,7 +119,7 @@ const Service = () => {
   };
 
   return (
-    <div className="w-full">
+    <div ref={ref} className="w-full">
       <div
         className={`${styles.paddingPageX} ${styles.paddingY} flex flex-col gap-3 lg:gap-5 items-center`}
       >
@@ -131,6 +136,6 @@ const Service = () => {
       </div>
     </div>
   );
-};
+});
 
 export default Service;

@@ -1,5 +1,5 @@
-import { chatlas, logo } from "../assets";
 import { styles } from "../styles";
+import { FaRegEnvelope } from "react-icons/fa";
 
 export const Footer = () => {
   return (
@@ -9,7 +9,10 @@ export const Footer = () => {
       <div
         className={`mt-2 font-["Inter"] text-[1.25rem] flex flex-col md:flex-row justify-between`}
       >
-        <div className="underline">chatlasplaceholder@gmail.com</div>
+        <div className="underline flex items-center gap-2">
+          <FaRegEnvelope size={16} />
+          chatlashelp@gmail.com
+        </div>
         <div>© 2025 Chatlas. All Rights Reserved</div>
       </div>
     </div>
