@@ -49,7 +49,7 @@ export const CHATS_DATA = [
   {
     id: 6,
     name: "Chat 6",
-    avatarColor: "bg-cyan-400",
+    avatarColor: "bg-blue-400",
     avatarText: "C",
     lastMessage: "User: hello",
     time: "1h",
