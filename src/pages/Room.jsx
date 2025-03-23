@@ -1,15 +1,17 @@
+// ChatRoom.jsx
 import React, { useState, useEffect, useRef } from "react";
 import Avatar from "../components/chatroom/ReusableComponents.jsx";
 import Sidebar from "../components/chatroom/Sidebar.jsx";
 import ChatWindow from "../components/chatroom/ChatWindow.jsx";
-import { CHATS_DATA, ALL_MESSAGES } from "../components/chatroom/Data.jsx";
 import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
-import RequestJoin from "../components/chatroom/RequestJoin.jsx";
-import WaitingApproval from "../components/chatroom/WaitingApproval.jsx";
-import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  showToastError,
+} from "../components/common/ShowToast";
 
+// Empty state component displayed if no chat is selected
 const EmptyState = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
@@ -29,9 +31,10 @@ const EmptyState = () => {
   );
 };
 
+// Modal component for creating a new chat (Chat Name + Description only)
 const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
   const [chatName, setChatName] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [description, setDescription] = useState("");
 
   if (!isOpen) return null;
 
@@ -39,21 +42,16 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
     e.preventDefault();
     if (!chatName.trim()) return;
 
+    // Create a new chat object locally
     onCreateChat({
       name: chatName,
-      members: selectedUsers,
+      description: description,
     });
 
     setChatName("");
-    setSelectedUsers([]);
+    setDescription("");
     onClose();
   };
-
-  const availableUsers = [
-    { id: 1, name: "Alice", avatar: "A", color: "bg-purple-400" },
-    { id: 2, name: "Bob", avatar: "B", color: "bg-green-400" },
-    { id: 3, name: "Charlie", avatar: "C", color: "bg-blue-400" },
-  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -69,6 +67,7 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4">
+          {/* Chat Name Field */}
           <div className="mb-4">
             <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
               Chat Name
@@ -83,39 +82,17 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
             />
           </div>
 
+          {/* Description Field (Replaces "Add Users") */}
           <div className="mb-4">
             <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
-              Add Users
+              Description
             </label>
-            <div className="max-h-40 overflow-y-auto border rounded p-2">
-              {availableUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center p-2 hover:bg-gray-100"
-                >
-                  <input
-                    type="checkbox"
-                    id={`user-${user.id}`}
-                    checked={selectedUsers.includes(user.id)}
-                    onChange={() => {
-                      setSelectedUsers((prev) =>
-                        prev.includes(user.id)
-                          ? prev.filter((id) => id !== user.id)
-                          : [...prev, user.id]
-                      );
-                    }}
-                    className="mr-2"
-                  />
-                  <label
-                    htmlFor={`user-${user.id}`}
-                    className="flex items-center cursor-pointer"
-                  >
-                    <Avatar color={user.color} text={user.avatar} size="sm" />
-                    <span className="font-['Inter'] ml-2">{user.name}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              placeholder="Enter a description (optional)"
+            />
           </div>
 
           <div className="flex justify-end">
@@ -140,17 +117,11 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 };
 
 const ChatRoom = () => {
-  const { inviteLink } = useParams();
-  const navigate = useNavigate();
-
-  const [chats, setChats] = useState(
-    CHATS_DATA.map((chat) => ({
-      ...chat,
-      messages: ALL_MESSAGES[chat.id] || [],
-      status: "active",
-    }))
-  );
-
+  const userId = localStorage.getItem('user_id')
+  // Start with empty arrays; no dummy data
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
+  // No chat selected initially => triggers EmptyState
   const [currentChatId, setCurrentChatId] = useState(null);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -174,49 +145,53 @@ const ChatRoom = () => {
 
   const messageContainerRef = useRef(null);
 
+  // Identify the current chat
+  const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
+
+  // Load all most current chats to side bar
   useEffect(() => {
-    if (inviteLink) {
-      const mockInvitedChat = {
-        id: 999,
-        name: "Invited Chat Room",
-        avatarColor: "bg-blue-400",
-        avatarText: "I",
-        lastMessage: "You've been invited to this chat",
-        time: "now",
-        unread: false,
-        messages: [],
-        status: "invited",
-      };
+    const fetchChats = async () => {
+      try {
+        const allChats = await axios.get(`http://localhost:3000/chatroom/user/${userId}`)
+        const newChats = allChats.data?.chatRooms.map(chat => chat.chatRoom) || [];
 
-      setInvitedChatDetails(mockInvitedChat);
-      setShowJoinRequest(true);
-    } else {
-      setCurrentChatId(chats.length > 0 ? chats[0].id : null);
+        const statuses = await Promise.all(
+          newChats.map(chat => axios.get(`http://localhost:3000/chatroom/${chat.id}/readStatus/${userId}`))
+        );
+        
+        // Attach read status to chats
+        newChats.forEach((chat, index) => {
+          chat.unread = statuses[index].data.unread;
+        });
+
+        setChats([...chats, ...newChats])
+      }
+      catch (err) {
+        showToastError(err.response?.data?.message)
+      }
     }
-  }, [inviteLink]);
 
-  const currentChat = currentChatId
-    ? chats.find((chat) => chat.id === currentChatId) || null
-    : null;
+    fetchChats();
+  }, []);
 
+  // Filter chats
   const getFilteredChats = () => {
     let filtered = [...chats];
-
     if (searchTerm) {
       filtered = filtered.filter(
         (chat) =>
           chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+          (chat.lastMessage &&
+            chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
-
     if (activeFilter === "unread") {
       filtered = filtered.filter((chat) => chat.unread);
     }
-
     return filtered;
   };
 
+  // Send a new message locally
   const handleSendMessage = () => {
     if (!newMessage.trim() || !currentChatId) return;
 
@@ -226,109 +201,59 @@ const ChatRoom = () => {
       fromUser: true,
       timestamp: new Date(),
     };
-
-    const updatedChats = chats.map((chat) => {
-      if (chat.id === currentChatId) {
-        return {
-          ...chat,
-          messages: [...(chat.messages || []), newMsg],
-          lastMessage: `You: ${newMessage}`,
-          time: "now",
-        };
-      }
-      return chat;
-    });
-
-    setChats(updatedChats);
+    setMessages([...messages, newMsg]);
     setNewMessage("");
-    setIsTyping(true);
-    const prevChats = updatedChats;
-    setChats(
-      prevChats.map((chat) => {
-        if (chat.id === currentChatId) {
-          const responseMsg = {
-            id: Date.now(),
-            content: `Response from ${chat.name}: Thanks for your message! We'll get back to you shortly.`,
-            fromUser: false,
-            sender: chat.avatarText,
-            senderColor: chat.avatarColor,
-            typing: true,
-          };
 
-          return {
-            ...chat,
-            messages: [...chat.messages, responseMsg],
-          };
-        }
-        return chat;
-      })
+    // Update last message in the chat list
+    const updatedChats = chats.map((chat) =>
+      chat.id === currentChatId
+        ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
+        : chat
     );
-
-    setTimeout(() => {
-      setIsTyping(false);
-      setChats(
-        prevChats.map((chat) => {
-          if (chat.id === currentChatId) {
-            const responseMsg = {
-              id: Date.now(),
-              content: `Response from ${chat.name}: Thanks for your message! We'll get back to you shortly.`,
-              fromUser: false,
-              sender: chat.avatarText,
-              senderColor: chat.avatarColor,
-              typing: false,
-              timestamp: new Date(),
-            };
-
-            return {
-              ...chat,
-              messages: [...chat.messages, responseMsg],
-            };
-          }
-          return chat;
-        })
-      );
-    }, 1500);
+    setChats(updatedChats);
   };
 
-  const handleCreateChat = (chatData) => {
-    const newChat = {
-      id: Date.now(),
+  // Create a new chat locally
+  const handleCreateChat = async (chatData) => {
+    const data = {
       name: chatData.name,
+      description: chatData.description || "",
+      adminId: userId,
       avatarColor: `bg-${
-        ["green", "blue", "purple", "cyan", "yellow"][
+        ["green", "purple", "cyan", "yellow", "blue"][
           Math.floor(Math.random() * 5)
         ]
       }-400`,
       avatarText: chatData.name.charAt(0).toUpperCase(),
-      lastMessage: "Start a conversation...",
-      time: "now",
-      unread: false,
-      info: `${chatData.members.length + 1} Members`,
-      messages: [
-        {
-          id: Date.now(),
-          content: `Welcome to ${chatData.name}! This is a new chat.`,
-          fromUser: false,
-          sender: chatData.name.charAt(0).toUpperCase(),
-          senderColor: `bg-${
-            ["green", "blue", "purple", "cyan", "yellow"][
-              Math.floor(Math.random() * 5)
-            ]
-          }-400`,
-          timestamp: new Date(),
-        },
-      ],
-      status: "active",
-    };
+      lastMessage: "Start a conversation..."
+    }
 
-    setChats([newChat, ...chats]);
-    setCurrentChatId(newChat.id);
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/chatroom",
+        data
+      );
+      if (response.status === 201) {        
+        const newChat = response.data?.chatroom;
+        newChat.unread = true;
+        setChats([newChat, ...chats]);
+        setCurrentChatId(newChat.id);
+      }
+    } catch (err) {
+      showToastError(err.response?.data?.message);
+      console.log(err);
+    }
 
+    // Reset messages
+    setMessages([]);
+
+    // On mobile, hide sidebar after selecting a chat
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
+  // Auto-scroll messages
   useEffect(() => {
     if (messageContainerRef.current && currentChat?.messages) {
       messageContainerRef.current.scrollTop =
@@ -336,56 +261,24 @@ const ChatRoom = () => {
     }
   }, [currentChat?.messages]);
 
-  const handleChatClick = (chatId) => {
+  // Handle selecting a chat
+  const handleChatClick = async (chatId) => {
+    console.log(chatId)
     setCurrentChatId(chatId);
-
     setChats(
-      chats.map((chat) =>
-        chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
+      chats.map((chat) => chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
 
+    await axios.put(`http://localhost:3000/chatroom/${chatId}/readStatus/${userId}`)
+
+    // On mobile, hide sidebar after selecting
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
-  const handleJoinRequest = (userName) => {
-    console.log(
-      `User ${userName} requested to join chat ${invitedChatDetails?.name}`
-    );
-
-    const newChat = {
-      ...invitedChatDetails,
-      id: Date.now(),
-      status: "pending",
-      messages: [
-        {
-          id: Date.now(),
-          content: `You requested to join ${invitedChatDetails.name}. Waiting for approval...`,
-          fromUser: false,
-          sender: "System",
-          senderColor: "bg-gray-400",
-          timestamp: new Date(),
-        },
-      ],
-    };
-
-    setChats([newChat, ...chats]);
-    setCurrentChatId(newChat.id);
-    setShowJoinRequest(false);
-  };
-
-  const handleCancelJoinRequest = () => {
-    setShowJoinRequest(false);
-
-    if (chats.length > 0) {
-      setCurrentChatId(chats[0].id);
-    } else {
-      setCurrentChatId(null);
-    }
-  };
-
+  // Handle resizing
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -407,6 +300,7 @@ const ChatRoom = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [currentChatId]);
 
+  // Toggles
   const toggleSidebar = () => setShowSidebar(!showSidebar);
   const toggleChatInfo = () => setShowChatInfo(!showChatInfo);
 
@@ -481,11 +375,26 @@ const ChatRoom = () => {
           />
         )}
 
-        {renderMainContent()}
-
-        {showChatInfo && currentChatId && currentChat?.status !== "pending" && (
-          <ChatInfo group={currentChat} />
+        {/* Chat Window or Empty State */}
+        {currentChatId ? (
+          <ChatWindow
+            messages={messages}
+            currentChat={currentChat}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            onSendMessage={handleSendMessage}
+            messageContainerRef={messageContainerRef}
+            toggleSidebar={toggleSidebar}
+            toggleChatInfo={toggleChatInfo}
+            showSidebar={showSidebar}
+            showChatInfo={showChatInfo}
+          />
+        ) : (
+          <EmptyState />
         )}
+
+        {/* Right Sidebar - conditionally shown */}
+        {(showChatInfo && currentChatId) && <ChatInfo chatId={currentChatId} />}
       </div>
 
       <NewChatModal
