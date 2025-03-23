@@ -66,7 +66,7 @@ const Contact = () => {
 
   return (
     <div
-      className={`${styles.paddingPageX} ${styles.paddingY} flex flex-col md:flex-row justify-between md:gap-10 w-full relative`}
+      className={`${styles.paddingPageX} ${styles.paddingY} min-h-[100vh] flex flex-col md:flex-row justify-between md:gap-10 w-full relative`}
     >
       <div className="w-full md:w-2/5 flex flex-col justify-start gap-4 md:gap-6 mb-8 md:mb-0 relative">
         <div className="flex items-center gap-2">
