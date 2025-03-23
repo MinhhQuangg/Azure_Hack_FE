@@ -1,4 +1,4 @@
-// ChatRoom.jsx
+// Room.jsx
 import React, { useState, useEffect, useRef } from "react";
 import Avatar from "../components/chatroom/ReusableComponents.jsx";
 import Sidebar from "../components/chatroom/Sidebar.jsx";
@@ -7,11 +7,9 @@ import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
 import axios from "axios";
-import {
-  showToastError,
-} from "../components/common/ShowToast";
+import io from "socket.io-client";
+import { showToastError } from "../components/common/ShowToast";
 
-// Empty state component displayed if no chat is selected
 const EmptyState = () => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
@@ -31,7 +29,6 @@ const EmptyState = () => {
   );
 };
 
-// Modal component for creating a new chat (Chat Name + Description only)
 const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
   const [chatName, setChatName] = useState("");
   const [description, setDescription] = useState("");
@@ -42,7 +39,6 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
     e.preventDefault();
     if (!chatName.trim()) return;
 
-    // Create a new chat object locally
     onCreateChat({
       name: chatName,
       description: description,
@@ -67,7 +63,6 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4">
-          {/* Chat Name Field */}
           <div className="mb-4">
             <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
               Chat Name
@@ -82,7 +77,6 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
             />
           </div>
 
-          {/* Description Field (Replaces "Add Users") */}
           <div className="mb-4">
             <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
               Description
@@ -117,64 +111,73 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 };
 
 const ChatRoom = () => {
-  const userId = localStorage.getItem('user_id')
-  // Start with empty arrays; no dummy data
+  const userId = localStorage.getItem("user_id");
+
+  // Instead of a single [messages], we store a dictionary: { [roomId]: [msg, msg, ...], ... }
+  const [roomMessages, setRoomMessages] = useState({});
   const [chats, setChats] = useState([]);
-  const [messages, setMessages] = useState([]);
-  // No chat selected initially => triggers EmptyState
   const [currentChatId, setCurrentChatId] = useState(null);
   const [newMessage, setNewMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+
+  // UI states
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
-  const [showJoinRequest, setShowJoinRequest] = useState(true);
-  const [invitedChatDetails, setInvitedChatDetails] = useState({
-    id: 999,
-    name: "Invited Chat Room",
-    avatarColor: "bg-blue-400",
-    avatarText: "I",
-    lastMessage: "You've been invited to this chat",
-    time: "now",
-    unread: false,
-    messages: [],
-    status: "invited",
-  });
 
   const messageContainerRef = useRef(null);
 
-  // Identify the current chat
-  const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
+  // Single socket
+  const [socket, setSocket] = useState(null);
 
-  // Load all most current chats to side bar
+  useEffect(() => {
+    const socketInstance = io("http://localhost:3000", {
+      transports: ["websocket"],
+      auth: { userId: userId },
+    });
+    setSocket(socketInstance);
+
+    return () => socketInstance.disconnect();
+  }, [userId]);
+
+  // For the currently selected chat, we show that chat's messages or an empty array
+  const currentChatMessages = roomMessages[currentChatId] || [];
+  const currentChat = chats.find((c) => c.id === currentChatId) || null;
+
+  // 1. Load all chats for the sidebar (no GET for messages, just for chats)
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const allChats = await axios.get(`http://localhost:3000/chatroom/user/${userId}`)
-        const newChats = allChats.data?.chatRooms.map(chat => chat.chatRoom) || [];
-
-        const statuses = await Promise.all(
-          newChats.map(chat => axios.get(`http://localhost:3000/chatroom/${chat.id}/readStatus/${userId}`))
+        const allChats = await axios.get(
+          `http://localhost:3000/chatroom/user/${userId}`
         );
-        
-        // Attach read status to chats
+        const newChats =
+          allChats.data?.chatRooms.map((chat) => chat.chatRoom) || [];
+
+        // Mark unread
+        const statuses = await Promise.all(
+          newChats.map((chat) =>
+            axios.get(
+              `http://localhost:3000/chatroom/${chat.id}/readStatus/${userId}`
+            )
+          )
+        );
+
         newChats.forEach((chat, index) => {
           chat.unread = statuses[index].data.unread;
         });
 
-        setChats([...chats, ...newChats])
+        setChats([...chats, ...newChats]);
+      } catch (err) {
+        showToastError(err.response?.data?.message);
       }
-      catch (err) {
-        showToastError(err.response?.data?.message)
-      }
-    }
+    };
 
     fetchChats();
-  }, []);
+  }, [userId]);
 
-  // Filter chats
+  // 2. Filter chats for sidebar
   const getFilteredChats = () => {
     let filtered = [...chats];
     if (searchTerm) {
@@ -191,29 +194,73 @@ const ChatRoom = () => {
     return filtered;
   };
 
-  // Send a new message locally
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !currentChatId) return;
-
-    const newMsg = {
-      id: Date.now(),
-      content: newMessage,
-      fromUser: true,
-      timestamp: new Date(),
-    };
-    setMessages([...messages, newMsg]);
-    setNewMessage("");
-
-    // Update last message in the chat list
-    const updatedChats = chats.map((chat) =>
-      chat.id === currentChatId
-        ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
-        : chat
+  // 3. Select a chat (do NOT fetch old messages, just rely on local data)
+  const handleChatClick = (chatId) => {
+    setCurrentChatId(chatId);
+    // Mark as read
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
+      )
     );
-    setChats(updatedChats);
+
+    // Join the room if using Socket for presence
+    if (socket) {
+      socket.emit("joinRoom", chatId);
+      console.log("Joined existing room:", chatId);
+    }
+
+    // On mobile, hide sidebar
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
   };
 
-  // Create a new chat locally
+  // 4. Send message => POST to the server, but only store in local dictionary
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !currentChatId) return;
+
+    try {
+      // Save to DB
+      const response = await axios.post(
+        `http://localhost:3000/rooms/${currentChatId}/messages`,
+        { text: newMessage, userId: userId }
+      );
+      console.log(response.status, response.data);
+      const savedMessage = response.data;
+
+      // Mark fromUser = true
+      savedMessage.fromUser = true;
+      // Make a local timestamp
+      savedMessage.timestamp = new Date();
+
+      // Only put it in the dictionary for currentChatId
+      setRoomMessages((prev) => {
+        const existingArray = prev[currentChatId] || [];
+        return {
+          ...prev,
+          [currentChatId]: [...existingArray, savedMessage],
+        };
+      });
+
+      // Clear the input
+      setNewMessage("");
+
+      // Update last message in the chat list
+      const updated = chats.map((chat) =>
+        chat.id === currentChatId
+          ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
+          : chat
+      );
+      setChats(updated);
+
+    } catch (error) {
+      console.error(error);
+      showToastError(error.response?.data?.error || "Error sending message");
+    }
+  };
+
+  // 5. Create a new chat => POST to the server (no GET for messages)
   const handleCreateChat = async (chatData) => {
     const data = {
       name: chatData.name,
@@ -225,60 +272,48 @@ const ChatRoom = () => {
         ]
       }-400`,
       avatarText: chatData.name.charAt(0).toUpperCase(),
-      lastMessage: "Start a conversation..."
-    }
+      lastMessage: "Start a conversation...",
+    };
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/chatroom",
-        data
-      );
-      if (response.status === 201) {        
+      const response = await axios.post("http://localhost:3000/chatroom", data);
+      if (response.status === 201) {
         const newChat = response.data?.chatroom;
         newChat.unread = true;
-        setChats([newChat, ...chats]);
+        setChats((prev) => [newChat, ...prev]);
         setCurrentChatId(newChat.id);
+
+        // Optionally join the new room
+        if (socket) {
+          socket.emit("joinRoom", newChat.id);
+          console.log("Joined new room:", newChat.id);
+        }
+
+        // Start with an empty array for the new chat
+        setRoomMessages((prev) => ({
+          ...prev,
+          [newChat.id]: [],
+        }));
       }
     } catch (err) {
       showToastError(err.response?.data?.message);
       console.log(err);
     }
 
-    // Reset messages
-    setMessages([]);
-
-    // On mobile, hide sidebar after selecting a chat
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
-  // Auto-scroll messages
+  // 6. Auto-scroll
   useEffect(() => {
-    if (messageContainerRef.current && currentChat?.messages) {
+    if (messageContainerRef.current) {
       messageContainerRef.current.scrollTop =
         messageContainerRef.current.scrollHeight;
     }
-  }, [currentChat?.messages]);
+  }, [currentChatMessages]);
 
-  // Handle selecting a chat
-  const handleChatClick = async (chatId) => {
-    console.log(chatId)
-    setCurrentChatId(chatId);
-    setChats(
-      chats.map((chat) => chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
-      )
-    );
-
-    await axios.put(`http://localhost:3000/chatroom/${chatId}/readStatus/${userId}`)
-
-    // On mobile, hide sidebar after selecting
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
-  };
-
-  // Handle resizing
+  // 7. Handle responsive layout
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -304,59 +339,6 @@ const ChatRoom = () => {
   const toggleSidebar = () => setShowSidebar(!showSidebar);
   const toggleChatInfo = () => setShowChatInfo(!showChatInfo);
 
-  if (showJoinRequest && invitedChatDetails) {
-    return (
-      <div className="flex flex-col h-screen bg-gray-100">
-        <NavBar />
-        <div className="flex flex-1 overflow-hidden">
-          {showSidebar && (
-            <Sidebar
-              chats={getFilteredChats()}
-              currentChatId={currentChatId}
-              onChatClick={handleChatClick}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              activeFilter={activeFilter}
-              setActiveFilter={setActiveFilter}
-              onNewChat={() => setIsNewChatModalOpen(true)}
-            />
-          )}
-          <RequestJoin
-            chatName={invitedChatDetails.name}
-            onJoinRequest={handleJoinRequest}
-            onCancel={handleCancelJoinRequest}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  const renderMainContent = () => {
-    if (!currentChatId) {
-      return <EmptyState />;
-    }
-
-    if (currentChat?.status === "pending") {
-      return <WaitingApproval chatName={currentChat.name} />;
-    }
-
-    return (
-      <ChatWindow
-        messages={currentChat?.messages || []}
-        isTyping={isTyping}
-        currentChat={currentChat}
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        onSendMessage={handleSendMessage}
-        messageContainerRef={messageContainerRef}
-        toggleSidebar={toggleSidebar}
-        toggleChatInfo={toggleChatInfo}
-        showSidebar={showSidebar}
-        showChatInfo={showChatInfo}
-      />
-    );
-  };
-
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <NavBar />
@@ -375,10 +357,9 @@ const ChatRoom = () => {
           />
         )}
 
-        {/* Chat Window or Empty State */}
         {currentChatId ? (
           <ChatWindow
-            messages={messages}
+            messages={currentChatMessages}
             currentChat={currentChat}
             newMessage={newMessage}
             setNewMessage={setNewMessage}
@@ -393,8 +374,7 @@ const ChatRoom = () => {
           <EmptyState />
         )}
 
-        {/* Right Sidebar - conditionally shown */}
-        {(showChatInfo && currentChatId) && <ChatInfo chatId={currentChatId} />}
+        {showChatInfo && currentChatId && <ChatInfo groupId={currentChatId} />}
       </div>
 
       <NewChatModal
