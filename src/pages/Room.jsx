@@ -250,7 +250,6 @@ const ChatRoom = () => {
 
   // Handle selecting a chat
   const handleChatClick = async (chatId) => {
-    console.log(chatId)
     setCurrentChatId(chatId);
     setChats(
       chats.map((chat) => chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
