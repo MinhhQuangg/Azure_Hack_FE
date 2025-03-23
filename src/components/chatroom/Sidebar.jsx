@@ -1,8 +1,25 @@
 import Avatar from "./ReusableComponents.jsx";
 import { TabButton } from "./ReusableComponents.jsx";
 import { IconButton } from "./ReusableComponents.jsx";
-import { styles } from "../../styles.js";
 import { FaSearch, FaCommentDots } from "react-icons/fa";
+
+const showTime = (timestamp) => {
+  const sentTime = new Date(timestamp);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - sentTime) / 1000);
+
+  if (diffInSeconds < 60) return "now"; // Less than 1 minute
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m`; // Less than 1 hour
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h`; // Less than 1 day
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `${diffInDays}d`; // Less than 1 month
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) return `${diffInMonths}m`; // Less than 1 year
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `${diffInYears} y`; // More than 1 year
+}
 
 const Sidebar = ({
   chats,
@@ -67,18 +84,18 @@ const Sidebar = ({
               }`}
               onClick={() => onChatClick(chat.id)}
             >
-              <Avatar color={chat.avatarColor} text={chat.avatarText} />
+              <Avatar color={chat.avatar_color} text={chat.avatar_text} />
               <div className="ml-3 flex-1">
                 <div className="flex justify-between">
                   <span className="font-['Montserrat'] font-semibold">
                     {chat.name}
                   </span>
                   <span className="font-['Inter'] text-[#989898] text-xs">
-                    {chat.time}
+                    {showTime(chat.updated_at)}
                   </span>
                 </div>
                 <p className="font-['Inter'] text-[#65686C] text-sm truncate">
-                  {chat.lastMessage}
+                  {chat.last_message}
                 </p>
               </div>
               {chat.unread && (
