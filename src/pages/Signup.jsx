@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { chatlas, logo, visibility, visibilityOff } from "../assets";
+import { chatlas, logo } from "../assets";
 import {
   showToastError,
   showToastSuccess,
 } from "../components/common/ShowToast";
 import { styles } from "../styles";
+import visibility from "../assets/eye-solid.svg";
+import visibilityOff from "../assets/eye-slash-solid.svg";
 import axios from "axios";
 import { useAuth } from "../context/authContext";
 
@@ -18,8 +20,11 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const togglePasswordVisibilityConfirm = () =>
+    setShowPasswordConfirm(!showPasswordConfirm);
 
   const buttonShadow = { boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)" };
 
@@ -50,7 +55,7 @@ const Signup = () => {
   };
 
   const inputStyle =
-    "w-full rounded-[6px] lg:rounded-[10px] p-[0.5em] font-['Inter'] lg:text-[1.35rem] text-[#757575]";
+    "w-full rounded-[6px] lg:rounded-[10px] p-[0.5em] font-['Inter'] lg:text-[1.35rem] placeholder-[#757575]";
 
   return (
     <div
@@ -180,7 +185,7 @@ const Signup = () => {
             </label>
             <div className="relative">
               <input
-                type="password"
+                type={showPasswordConfirm ? "text" : "password"}
                 placeholder="Confirm your password"
                 className={`${inputStyle}`}
                 style={inputShadowStyle}
@@ -192,6 +197,26 @@ const Signup = () => {
                   },
                 })}
               />
+              <button
+                type="button"
+                onClick={togglePasswordVisibilityConfirm}
+                className="absolute top-[50%] right-7"
+                style={{ transform: "translate(50%, -50%)" }}
+              >
+                {showPasswordConfirm ? (
+                  <img
+                    src={visibility}
+                    alt="invisible"
+                    className="w-auto h-6"
+                  />
+                ) : (
+                  <img
+                    src={visibilityOff}
+                    alt="visible"
+                    className="w-auto h-6"
+                  />
+                )}
+              </button>
             </div>
             {errors.passwordConfirm && (
               <span className="text-red-500 text-sm">
