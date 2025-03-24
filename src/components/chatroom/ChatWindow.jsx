@@ -19,6 +19,7 @@ import {
   FaMicrophone,
   FaRegStopCircle,
 } from "react-icons/fa";
+import { languages } from "../../constants";
 
 const MessageBubble = ({ message }) => {
   if (message.typing) {
@@ -106,12 +107,11 @@ const ChatWindow = ({
   messageContainerRef,
   toggleSidebar,
   toggleChatInfo,
-  showSidebar,
   showChatInfo,
   onFileUpload,
   onImageUpload,
 }) => {
-  const [language, setLanguage] = useState("English");
+  const [language, setLanguage] = useState("en");
   const speechKey =
     "5Bb2AZsg21fCKHpKJCJOErhN3gUVx4NBANBX6ydwCZ1pqT66lfWsJQQJ99BCACYeBjFXJ3w3AAAYACOGpEct";
   const speechRegion = "eastus";
@@ -199,15 +199,15 @@ const ChatWindow = ({
           </button>
 
           <Avatar
-            color={currentChat.avatarColor}
-            text={currentChat.avatarText}
+            color={currentChat.avatar_color}
+            text={currentChat.avatar_text}
           />
           <div className="ml-3">
             <h2 className="font-['Montserrat'] font-bold text-[1.35rem]">
               {currentChat.name}
             </h2>
             <p className="font-['Inter'] text-xs text-gray-500">
-              {currentChat.info || ""}
+              {currentChat.description || ""}
             </p>
           </div>
         </div>
@@ -219,10 +219,15 @@ const ChatWindow = ({
               onChange={(e) => setLanguage(e.target.value)}
               className="font-['Inter'] w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
             >
-              <option>English</option>
+              {/* <option>English</option>
               <option>Spanish</option>
               <option>French</option>
-              <option>German</option>
+              <option>German</option> */}
+              {languages.map((lang, i) => (
+                <option key={i} value={lang.code}>
+                  {lang.language}
+                </option>
+              ))}
             </select>
           </div>
           <IconButton
