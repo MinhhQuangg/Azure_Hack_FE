@@ -186,33 +186,26 @@ const ChatInfo = ({chatId}) => {
 
   const handleUserAction = async (userId, action) => {
     try {
-      if (action === "makeAdmin") {
-        // await api.makeUserAdmin(chatId, userId);
-        console.log("Made user admin", userId);
-      } else if (action === "removeAdmin") {
-        // await api.removeUserAdmin(chatId, userId);
-        console.log("Removed admin status from user", userId);
-      } else if (action === "removeMember") {
-        // await api.removeMember(chatId, userId);
-        console.log("Removed member", userId);
-      }
       setIsUserInfoModalOpen(false);
 
       if (action === "makeAdmin") {
+        await axios.put(`http://localhost:3000/chatroom/${chatId}/changeAdmin`,
+          {
+            newAdminId: userId
+          }
+        )
         setGroupData((prev) => ({
           ...prev,
           members: prev.members.map((member) =>
             member.id === userId ? { ...member, isAdmin: true } : member
           ),
+          adminId: userId
         }));
-      } else if (action === "removeAdmin") {
-        setGroupData((prev) => ({
-          ...prev,
-          members: prev.members.map((member) =>
-            member.id === userId ? { ...member, isAdmin: false } : member
-          ),
-        }));
+
+        setIsCurrentUserAdmin(false);
+
       } else if (action === "removeMember") {
+        await axios.delete(`http://localhost:3000/chatroom/${chatId}/members/${userId}`)
         setGroupData((prev) => ({
           ...prev,
           members: prev.members.filter((member) => member.id !== userId),
@@ -302,8 +295,6 @@ const ChatInfo = ({chatId}) => {
           name: newGroupName
         }
       )
-
-      console.log("Updated group name to", newGroupName);
 
       setGroupData((prev) => ({
         ...prev,
@@ -523,30 +514,29 @@ const ChatInfo = ({chatId}) => {
       >
         <div className="text-center mb-6">
           <div className="font-medium text-gray-700">Joined</div>
-          <p className="text-gray-600">{formatDate(selectedUser?.joined)}</p>
+          <p className="text-gray-600">{formatDate(selectedUser?.timestamp)}</p>
+          <p className="text-gray-600">{selectedUser?.email}</p>
         </div>
+        {isCurrentUserAdmin &&  
         <div className="flex flex-col gap-5 items-center justify-center w-full">
-          {selectedUser?.isAdmin ? (
-            <ActionButton
-              onClick={() => handleUserAction(selectedUser?.id, "removeAdmin")}
-              primary
-            >
-              <div className="flex items-center justify-center">
-                <FaUserShield className="mr-2" />
-                Remove Admin Status
-              </div>
-            </ActionButton>
-          ) : (
-            <ActionButton
-              onClick={() => handleUserAction(selectedUser?.id, "makeAdmin")}
-              primary
-            >
-              <div className="flex items-center justify-center">
-                <FaUserShield className="mr-2" />
-                Make Admin
-              </div>
-            </ActionButton>
-          )}
+          {/* <ActionButton
+            onClick={() => handleUserAction(selectedUser?.id, "removeAdmin")}
+            primary
+          >
+            <div className="flex items-center justify-center">
+              <FaUserShield className="mr-2" />
+              Remove Admin Status
+            </div>
+          </ActionButton> */}
+          <ActionButton
+            onClick={() => handleUserAction(selectedUser?.id, "makeAdmin")}
+            primary
+          >
+            <div className="flex items-center justify-center">
+              <FaUserShield className="mr-2" />
+              Make Admin
+            </div>
+          </ActionButton>
           <ActionButton
             onClick={() => handleUserAction(selectedUser?.id, "removeMember")}
           >
@@ -555,7 +545,7 @@ const ChatInfo = ({chatId}) => {
               Remove Member
             </div>
           </ActionButton>
-        </div>
+        </div> }
       </Modal>
     </div>
   );

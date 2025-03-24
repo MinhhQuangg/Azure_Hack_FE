@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import emailjs from "@emailjs/browser";
 import { styles } from "../../styles";
 
 const Contact = () => {
@@ -26,29 +27,47 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const inputStyles = `w-full font-["Inter"] placeholder-["Inter"] text-base md:text-lg px-4 py-3 border border-gray-400 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200`;
+
+  const buttonStyles = {
+    primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.25rem] font-semibold font-["Montserrat"] py-2 px-6 md:py-3 md:px-8 rounded-[10px] transition-all duration-300 w-full md:w-auto`,
+    boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
+  };
+
+  const form = useRef();
+
+  const sendEmail = (e) => {
     e.preventDefault();
+
     setFormStatus({
       submitted: true,
       error: false,
       message: "Thank you for your message! We'll get back to you soon.",
     });
-  };
 
-  const inputStyles = `w-full font-["Inter"] text-base md:text-lg px-4 py-3 border border-gray-200 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200`;
-
-  const buttonStyles = {
-    primary: `bg-primary hover:bg-[#ECE17F] text-base md:text-lg lg:text-[1.45rem] font-bold font-["Inter"] py-2 px-6 md:py-3 md:px-8 rounded-[10px] transition-all duration-300 w-full md:w-auto`,
-    boxShadow: "0 4px 4px rgba(0, 0, 0, 0.25)",
+    emailjs
+      .sendForm(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        form.current,
+        {
+          publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+        }
+      )
+      .then(
+        () => {
+          console.log("SUCCESS!");
+        },
+        (error) => {
+          console.log("FAILED...", error.text);
+        }
+      );
   };
 
   return (
     <div
-      className={`${styles.paddingPageX} ${styles.paddingY} flex flex-col md:flex-row justify-between md:gap-10 w-full relative`}
+      className={`${styles.paddingPageX} ${styles.paddingY} min-h-[100vh] flex flex-col md:flex-row justify-between md:gap-10 w-full relative`}
     >
-      <div className="absolute top-0 left-0 w-32 h-32 bg-primary rounded-full opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary rounded-full opacity-20 translate-x-1/2 translate-y-1/3"></div>
-
       <div className="w-full md:w-2/5 flex flex-col justify-start gap-4 md:gap-6 mb-8 md:mb-0 relative">
         <div className="flex items-center gap-2">
           <div
@@ -73,9 +92,6 @@ const Contact = () => {
 
       <div className="w-full md:w-3/5 relative">
         <div className="bg-white p-6 md:p-8 rounded-[15px] border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary opacity-10 rounded-bl-full"></div>
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-primary opacity-10 rounded-tr-full"></div>
-
           {formStatus.submitted ? (
             <div className={`text-center p-10 font-["Inter"] text-lg`}>
               <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6">
@@ -113,7 +129,11 @@ const Contact = () => {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6 relative">
+            <form
+              onSubmit={sendEmail}
+              className="space-y-6 relative"
+              ref={form}
+            >
               <div className="relative">
                 <label
                   htmlFor="name"
@@ -131,7 +151,6 @@ const Contact = () => {
                   required
                   placeholder="John Doe"
                 />
-                <div className="absolute right-3 top-10 w-3 h-3 bg-primary opacity-60 rounded-full"></div>
               </div>
 
               <div className="relative">
@@ -151,7 +170,6 @@ const Contact = () => {
                   required
                   placeholder="johndoe@example.com"
                 />
-                <div className="absolute right-3 top-10 w-3 h-3 bg-primary opacity-60 rounded-full"></div>
               </div>
 
               <div>
@@ -186,6 +204,18 @@ const Contact = () => {
           )}
         </div>
       </div>
+
+      <script
+        type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
+      ></script>
+      <script type="text/javascript">
+        (function()
+        {emailjs.init({
+          publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+        })}
+        )();
+      </script>
     </div>
   );
 };
