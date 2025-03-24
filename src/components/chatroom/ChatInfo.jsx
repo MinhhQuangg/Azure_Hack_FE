@@ -52,7 +52,7 @@ const ActionButton = ({ onClick, primary, children, className }) => (
 );
 
 const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
-  const { id, given_name, isOnline, isAdmin: memberIsAdmin, profile_picture } = member;
+  const { id, given_name, profile_picture } = member;
 
   const isCurrentUser = id === currentUserId;
 
@@ -71,11 +71,11 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
       </div>
       {isCurrentUser ? (
         <span className="font-['Inter'] text-xs text-gray-500">
-          {memberIsAdmin ? "Admin" : ""}
+          {isAdmin ? "Admin" : ""}
         </span>
       ) : (
         <>
-          {memberIsAdmin ? (
+          {isAdmin ? (
             <div className="flex items-center">
               <span className="font-['Inter'] text-xs text-gray-500 mr-2">
                 Admin
@@ -121,7 +121,7 @@ const ChatInfo = ({chatId}) => {
     const fetchGroupData = async () => {
       try {
         // fetch chat room info
-        const response = await axios.get(`http://localhost:3000/chatroom/${chatId}/details`);
+        const response = await axios.get(`http://localhost:3000/chatroom/${chatId}`);
         const chatRoom = response.data.chatRoom;
         
         // get member and pending members list
@@ -144,6 +144,7 @@ const ChatInfo = ({chatId}) => {
             name: chatRoom.name,
             createdAt: chatRoom.created_at,
             description: chatRoom.description,
+            adminId: chatRoom.admin_id,
             inviteLink: `abc.com/${chatRoom.id}`,
             members: members,
             joinRequests: pendingMembers
@@ -437,7 +438,7 @@ const ChatInfo = ({chatId}) => {
             key={member.id}
             member={member}
             currentUserId={currentUserId}
-            isAdmin={isCurrentUserAdmin}
+            isAdmin={member.id == groupData.adminId}
             onUserInfoClick={handleUserInfoClick}
           />
         ))}

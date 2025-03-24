@@ -195,28 +195,6 @@ const ChatRoom = () => {
     return filtered;
   };
 
-  // 3. Select a chat (do NOT fetch old messages, just rely on local data)
-  const handleChatClick = (chatId) => {
-    setCurrentChatId(chatId);
-    // Mark as read
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
-      )
-    );
-
-    // Join the room if using Socket for presence
-    if (socket) {
-      socket.emit("joinRoom", chatId);
-      console.log("Joined existing room:", chatId);
-    }
-
-    // On mobile, hide sidebar
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
-  };
-
   // 4. Send message => POST to the server, but only store in local dictionary
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !currentChatId) return;
@@ -314,7 +292,29 @@ const ChatRoom = () => {
     }
   }, [currentChatMessages]);
 
-  // 7. Handle responsive layout
+  // Handle selecting a chat
+  const handleChatClick = (chatId) => {
+    setCurrentChatId(chatId);
+    // Mark as read
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
+      )
+    );
+
+    // Join the room if using Socket for presence
+    if (socket) {
+      socket.emit("joinRoom", chatId);
+      console.log("Joined existing room:", chatId);
+    }
+
+    // On mobile, hide sidebar
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
+  };
+
+  // Handle resizing
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
