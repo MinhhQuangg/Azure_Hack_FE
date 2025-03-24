@@ -129,14 +129,13 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 const ChatRoom = () => {
   const { inviteLink } = useParams();
   const navigate = useNavigate();
-
-  // const [chats, setChats] = useState(
-  //   CHATS_DATA.map((chat) => ({
-  //     ...chat,
-  //     messages: ALL_MESSAGES[chat.id] || [],
-  //     status: "active",
-  //   }))
-  // );
+//   const [chats, setChats] = useState(
+//     CHATS_DATA.map((chat) => ({
+//       ...chat,
+//       messages: ALL_MESSAGES[chat.id] || [],
+//       status: "active",
+//     }))
+//   );
 
   const userId = localStorage.getItem('user_id')
   // Start with empty arrays; no dummy data
@@ -144,10 +143,12 @@ const ChatRoom = () => {
   const [messages, setMessages] = useState([]);
   // No chat selected initially => triggers EmptyState
   const [currentChatId, setCurrentChatId] = useState(null);
+  const currentChat = currentChatId
+    ? chats.find((chat) => chat.id === currentChatId) || null
+    : null;
+
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
@@ -163,6 +164,28 @@ const ChatRoom = () => {
     messages: [],
     status: "invited",
   });
+  
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [filteredChats, setFilteredChats] = useState(chats);
+  useEffect(() => {
+    let filtered = [...chats];
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (chat) =>
+          chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (activeFilter === "unread") {
+      filtered = filtered.filter((chat) => chat.unread);
+    }
+
+    setFilteredChats(filtered);
+  }, [chats, activeFilter]);
 
   const messageContainerRef = useRef(null);
 
@@ -439,7 +462,9 @@ const ChatRoom = () => {
         <div className="flex flex-1 overflow-hidden">
           {showSidebar && (
             <Sidebar
-              chats={getFilteredChats()}
+              chats={filteredChats}
+              originalChats={chats}
+              setOriginalChats={setChats}
               currentChatId={currentChatId}
               onChatClick={handleChatClick}
               searchTerm={searchTerm}
@@ -492,7 +517,9 @@ const ChatRoom = () => {
       <div className="flex flex-1 overflow-hidden">
         {showSidebar && (
           <Sidebar
-            chats={getFilteredChats()}
+            chats={filteredChats}
+            originalChats={chats}
+            setOriginalChats={setChats}
             currentChatId={currentChatId}
             onChatClick={handleChatClick}
             searchTerm={searchTerm}
@@ -506,7 +533,7 @@ const ChatRoom = () => {
         {renderMainContent()}
 
         {showChatInfo && currentChatId && currentChat?.status !== "pending" && (
-          <ChatInfo chatId={currentChatId} />
+          <ChatInfo chatId={currentChatId} currentChatId={currentChatId} setCurrentChatId={setCurrentChatId} originalChats={chats} setOriginalChats={setChats} />
         )}
       </div>
 

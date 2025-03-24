@@ -101,9 +101,8 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   );
 };
 
-const ChatInfo = ({chatId}) => {
+const ChatInfo = ({chatId, group, currentChatId setCurrentChatId, originalChats, setOriginalChats,}) => {
   const userId = localStorage.getItem('user_id')
-
   const [language, setLanguage] = useState("English");
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
@@ -164,7 +163,6 @@ const ChatInfo = ({chatId}) => {
     fetchGroupData();
   }, [chatId]);
 
-
   axios.get(`http://localhost:3000/chatroom/${chatId}/admin/${userId}`)
   .then((response) => {
     const isAdmin = response.data?.isAdmin
@@ -178,6 +176,13 @@ const ChatInfo = ({chatId}) => {
       await axios.delete(`http://localhost:3000/chatroom/${chatId}/leave/${userId}`)
 
       showToastSuccess(`Left group successfully`);
+      const remainingChats = originalChats.filter(
+        (chat) => chat.id !== group.id
+      );
+      console.log(group.id, remainingChats);
+
+      setOriginalChats(remainingChats);
+      setCurrentChatId(remainingChats[0].id);
       setIsLeaveModalOpen(false);
     } catch (err) {
       console.error("Failed to leave group", err);
