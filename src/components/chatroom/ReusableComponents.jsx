@@ -4,9 +4,15 @@ const Avatar = ({ color, text, size = "md", url }) => {
     md: "h-10 w-10",
     lg: "h-12 w-12",
   };
-  
+
   if (!color) {
-    color = ["bg-green", "bg-[#A4F2FA]", "bg-cyan", "bg-yellow", "bg-[#A4F2FA]"][Math.floor(Math.random() * 5)]
+    color = [
+      "bg-green-400",
+      "bg-blue-400",
+      "bg-cyan-400",
+      "bg-yellow-400",
+      "bg-purple-400",
+    ][Math.floor(Math.random() * 5)];
   }
 
   return url ? (
