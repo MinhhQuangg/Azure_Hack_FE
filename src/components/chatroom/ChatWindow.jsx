@@ -1,68 +1,25 @@
-import { useState, useRef } from "react";
-import { AvatarChat, AvatarPerson } from "./ReusableComponents";
-import { IconButton } from "./ReusableComponents";
 import {
-  SpeechConfig,
   AudioConfig,
+  SpeechConfig,
   SpeechRecognizer,
-  SpeechSynthesizer,
 } from "microsoft-cognitiveservices-speech-sdk";
+import { useEffect, useRef, useState } from "react";
+import { AvatarChat, AvatarPerson, IconButton } from "./ReusableComponents";
 
-import { styles } from "../../styles";
 import {
-  FaPaperclip,
-  FaImage,
-  FaPaperPlane,
-  FaInfoCircle,
-  FaGlobe,
   FaBars,
+  FaGlobe,
+  FaImage,
+  FaInfoCircle,
   FaMicrophone,
+  FaPaperclip,
+  FaPaperPlane,
   FaRegStopCircle,
 } from "react-icons/fa";
 import { languages } from "../../constants";
 
 const MessageBubble = ({ message }) => {
-  // console.log(message);
-
-  // if (message.typing) {
-  //   return (
-  //     <div
-  //       className={`flex mb-4 ${
-  //         message.fromUser ? "justify-end" : "justify-start"
-  //       }`}
-  //     >
-  //       {!message.fromUser && (
-  //         <div className="mr-2">
-  //           <AvatarPerson
-  //             // color={message.senderColor}
-  //             // text={message.sender}
-  //             // size="sm"
-  //           />
-  //         </div>
-  //       )}
-  //       <div className="bg-gray-200 rounded-lg p-3 inline-block max-w-md">
-  //         <div className="flex space-x-1">
-  //           <div
-  //             className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
-  //             style={{ animationDelay: "0ms" }}
-  //           ></div>
-  //           <div
-  //             className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
-  //             style={{ animationDelay: "75ms" }}
-  //           ></div>
-  //           <div
-  //             className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
-  //             style={{ animationDelay: "150ms" }}
-  //           ></div>
-  //         </div>
-  //         <div className="font-['Inter'] text-xs text-[#65686C] mt-1">
-  //           {message.sender} is typing...
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
+  console.log(message);
   return (
     <div
       className={`flex mb-4 ${
@@ -114,13 +71,13 @@ const ChatWindow = ({
   onImageUpload,
 }) => {
   const [language, setLanguage] = useState("en");
-  const speechKey =
-    "5Bb2AZsg21fCKHpKJCJOErhN3gUVx4NBANBX6ydwCZ1pqT66lfWsJQQJ99BCACYeBjFXJ3w3AAAYACOGpEct";
-  const speechRegion = "eastus";
+  const speechKey = import.meta.env.VITE_SPEECH_KEY;
+  const speechRegion = import.meta.env.VITE_SPEECH_REGION;
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
   const recognizerRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
+  // const [translatedMessages, setTranslatedMessages] = useState([]);
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -187,6 +144,52 @@ const ChatWindow = ({
       );
     }
   };
+
+  // const translateText = async (text, targetLanguage) => {
+  //   try {
+  //     const response = await fetch(
+  //       `https://api.cognitive.microsofttranslator.com//translate?api-version=3.0&to=${targetLanguage}`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Ocp-Apim-Subscription-Key": import.meta.env.VITE_TRANS_KEY,
+  //           // "7HB3rVe0Q0q91WulZqatlV9uz3JLs2Km8emcQ8wdKWADxHhnsR0lJQQJ99BCACYeBjFXJ3w3AAAbACOGJqVY",
+  //           "Ocp-Apim-Subscription-Region": import.meta.env.VITE_TRANS_REGION,
+  //           //  "eastus",
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify([{ Text: text }]),
+  //       }
+  //     );
+  //     const data = await response.json();
+  //     const translated = data[0].translations[0].text;
+  //     return translated;
+  //   } catch (error) {
+  //     console.error("Translation Error:", error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   const translateIncomingMessages = async () => {
+  //     console.log(messages);
+  //     const updatedMessages = await Promise.all(
+  //       messages.map(async (message) => {
+  //         if (message?.language !== language) {
+  //           const translatedContent = await translateText(
+  //             message?.content,
+  //             language
+  //           );
+  //           return { ...message, content: translatedContent };
+  //         }
+  //         return message;
+  //       })
+  //     );
+  //     setTranslatedMessages(updatedMessages);
+  //   };
+
+  //   translateIncomingMessages();
+  // }, [language, messages]);
+
   return (
     <div
       className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
@@ -221,10 +224,6 @@ const ChatWindow = ({
               onChange={(e) => setLanguage(e.target.value)}
               className="font-['Inter'] w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
             >
-              {/* <option>English</option>
-              <option>Spanish</option>
-              <option>French</option>
-              <option>German</option> */}
               {languages.map((lang, i) => (
                 <option key={i} value={lang.code}>
                   {lang.language}
@@ -241,9 +240,12 @@ const ChatWindow = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
-        {messages.map((message, key) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
+        {
+          // translatedMessages
+          messages.map((message, i) => (
+            <MessageBubble key={i} message={message} />
+          ))
+        }
       </div>
 
       <input
