@@ -101,8 +101,13 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   );
 };
 
-const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats, setOriginalChats,}) => {
-  const userId = localStorage.getItem('user_id')
+const ChatInfo = ({
+  chatId,
+  setCurrentChatId,
+  originalChats,
+  setOriginalChats,
+}) => {
+  const userId = localStorage.getItem("user_id");
   const [language, setLanguage] = useState("English");
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
@@ -114,25 +119,26 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
   const [currentUserId, setCurrentUserId] = useState(userId);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
-  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false)
+  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false);
 
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
         // fetch chat room info
-        const response = await axios.get(`http://localhost:3000/chatroom/${chatId}`);
+        const response = await axios.get(
+          `http://localhost:3000/chatroom/${chatId}`
+        );
         const chatRoom = response.data.chatRoom;
-        
+
         // get member and pending members list
-        const members = []
-        const pendingMembers = []
+        const members = [];
+        const pendingMembers = [];
 
         for (const member of chatRoom.members) {
-          if (member.status == 'approved') {
-            members.push(member)
-          }
-          else if (member.status == 'pending') {
-            pendingMembers.push(member)
+          if (member.status == "approved") {
+            members.push(member);
+          } else if (member.status == "pending") {
+            pendingMembers.push(member);
           }
         }
 
@@ -146,7 +152,7 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
             adminId: chatRoom.admin_id,
             inviteLink: `abc.com/${chatRoom.id}`,
             members: members,
-            joinRequests: pendingMembers
+            joinRequests: pendingMembers,
           };
 
           setGroupData(mockData);
@@ -163,29 +169,35 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
     fetchGroupData();
   }, [chatId]);
 
-  axios.get(`http://localhost:3000/chatroom/${chatId}/admin/${userId}`)
-  .then((response) => {
-    const isAdmin = response.data?.isAdmin
-    setIsCurrentUserAdmin(isAdmin)
-  })
+  axios
+    .get(`http://localhost:3000/chatroom/${chatId}/admin/${userId}`)
+    .then((response) => {
+      const isAdmin = response.data?.isAdmin;
+      setIsCurrentUserAdmin(isAdmin);
+    });
 
   const handleLeaveGroup = async () => {
     try {
       console.log("Left group", chatId);
 
-      await axios.delete(`http://localhost:3000/chatroom/${chatId}/leave/${userId}`)
+      await axios.delete(
+        `http://localhost:3000/chatroom/${chatId}/leave/${userId}`
+      );
 
       showToastSuccess(`Left group successfully`);
-      const remainingChats = originalChats.filter(
-        (chat) => chat.id !== group.id
-      );
-      console.log(group.id, remainingChats);
+      const remainingChats = originalChats.filter((chat) => chat.id !== chatId);
+      console.log(chatId, remainingChats);
 
       setOriginalChats(remainingChats);
       setCurrentChatId(remainingChats[0].id);
       setIsLeaveModalOpen(false);
     } catch (err) {
       console.error("Failed to leave group", err);
+
+      const remainingChats = originalChats.filter((chat) => chat.id !== chatId);
+      setOriginalChats(remainingChats);
+      setCurrentChatId(remainingChats[0].id);
+      setIsLeaveModalOpen(false);
     }
   };
 
@@ -194,23 +206,25 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
       setIsUserInfoModalOpen(false);
 
       if (action === "makeAdmin") {
-        await axios.put(`http://localhost:3000/chatroom/${chatId}/changeAdmin`,
+        await axios.put(
+          `http://localhost:3000/chatroom/${chatId}/changeAdmin`,
           {
-            newAdminId: userId
+            newAdminId: userId,
           }
-        )
+        );
         setGroupData((prev) => ({
           ...prev,
           members: prev.members.map((member) =>
             member.id === userId ? { ...member, isAdmin: true } : member
           ),
-          adminId: userId
+          adminId: userId,
         }));
 
         setIsCurrentUserAdmin(false);
-
       } else if (action === "removeMember") {
-        await axios.delete(`http://localhost:3000/chatroom/${chatId}/members/${userId}`)
+        await axios.delete(
+          `http://localhost:3000/chatroom/${chatId}/members/${userId}`
+        );
         setGroupData((prev) => ({
           ...prev,
           members: prev.members.filter((member) => member.id !== userId),
@@ -234,25 +248,23 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
             { ...newMember, joined: new Date(), isAdmin: false },
           ],
         }));
-        
+
         // send backend accept request
         await axios.put(
           `http://localhost:3000/chatroom/${chatId}/memberRequest`,
           {
             userId: userId,
-            status: "approved"
+            status: "approved",
           }
-        )
-        
-      }
-      else {
+        );
+      } else {
         await axios.put(
           `http://localhost:3000/chatroom/${chatId}/memberRequest`,
           {
             userId: userId,
-            status: "rejected"
+            status: "rejected",
           }
-        )
+        );
       }
     } catch (err) {
       console.error("Failed to handle join request", err);
@@ -294,12 +306,9 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
       }
 
       // update backend
-      await axios.put(
-        `http://localhost:3000/chatroom/${chatId}`, 
-        {
-          name: newGroupName
-        }
-      )
+      await axios.put(`http://localhost:3000/chatroom/${chatId}`, {
+        name: newGroupName,
+      });
 
       setGroupData((prev) => ({
         ...prev,
@@ -456,7 +465,9 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
                   size="sm"
                   url={request.profile_picture}
                 />
-                <span className="font-['Inter'] ml-2">{request.given_name}</span>
+                <span className="font-['Inter'] ml-2">
+                  {request.given_name}
+                </span>
               </div>
               <div className="flex">
                 <button
@@ -522,9 +533,9 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
           <p className="text-gray-600">{formatDate(selectedUser?.timestamp)}</p>
           <p className="text-gray-600">{selectedUser?.email}</p>
         </div>
-        {isCurrentUserAdmin &&  
-        <div className="flex flex-col gap-5 items-center justify-center w-full">
-          {/* <ActionButton
+        {isCurrentUserAdmin && (
+          <div className="flex flex-col gap-5 items-center justify-center w-full">
+            {/* <ActionButton
             onClick={() => handleUserAction(selectedUser?.id, "removeAdmin")}
             primary
           >
@@ -533,24 +544,25 @@ const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats
               Remove Admin Status
             </div>
           </ActionButton> */}
-          <ActionButton
-            onClick={() => handleUserAction(selectedUser?.id, "makeAdmin")}
-            primary
-          >
-            <div className="flex items-center justify-center">
-              <FaUserShield className="mr-2" />
-              Make Admin
-            </div>
-          </ActionButton>
-          <ActionButton
-            onClick={() => handleUserAction(selectedUser?.id, "removeMember")}
-          >
-            <div className="flex items-center justify-center">
-              <FaTimesCircle className="mr-2" />
-              Remove Member
-            </div>
-          </ActionButton>
-        </div> }
+            <ActionButton
+              onClick={() => handleUserAction(selectedUser?.id, "makeAdmin")}
+              primary
+            >
+              <div className="flex items-center justify-center">
+                <FaUserShield className="mr-2" />
+                Make Admin
+              </div>
+            </ActionButton>
+            <ActionButton
+              onClick={() => handleUserAction(selectedUser?.id, "removeMember")}
+            >
+              <div className="flex items-center justify-center">
+                <FaTimesCircle className="mr-2" />
+                Remove Member
+              </div>
+            </ActionButton>
+          </div>
+        )}
       </Modal>
     </div>
   );

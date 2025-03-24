@@ -8,9 +8,7 @@ import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
 import axios from "axios";
-import {
-  showToastError,
-} from "../components/common/ShowToast";
+import { showToastError } from "../components/common/ShowToast";
 import RequestJoin from "../components/chatroom/RequestJoin.jsx";
 import WaitingApproval from "../components/chatroom/WaitingApproval.jsx";
 import { useParams, useNavigate } from "react-router-dom";
@@ -129,15 +127,15 @@ const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
 const ChatRoom = () => {
   const { inviteLink } = useParams();
   const navigate = useNavigate();
-//   const [chats, setChats] = useState(
-//     CHATS_DATA.map((chat) => ({
-//       ...chat,
-//       messages: ALL_MESSAGES[chat.id] || [],
-//       status: "active",
-//     }))
-//   );
+  //   const [chats, setChats] = useState(
+  //     CHATS_DATA.map((chat) => ({
+  //       ...chat,
+  //       messages: ALL_MESSAGES[chat.id] || [],
+  //       status: "active",
+  //     }))
+  //   );
 
-  const userId = localStorage.getItem('user_id')
+  const userId = localStorage.getItem("user_id");
   // Start with empty arrays; no dummy data
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -164,7 +162,7 @@ const ChatRoom = () => {
     messages: [],
     status: "invited",
   });
-  
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -217,24 +215,30 @@ const ChatRoom = () => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const allChats = await axios.get(`http://localhost:3000/chatroom/user/${userId}`)
-        const newChats = allChats.data?.chatRooms.map(chat => chat.chatRoom) || [];
+        const allChats = await axios.get(
+          `http://localhost:3000/chatroom/user/${userId}`
+        );
+        const newChats =
+          allChats.data?.chatRooms.map((chat) => chat.chatRoom) || [];
 
         const statuses = await Promise.all(
-          newChats.map(chat => axios.get(`http://localhost:3000/chatroom/${chat.id}/readStatus/${userId}`))
+          newChats.map((chat) =>
+            axios.get(
+              `http://localhost:3000/chatroom/${chat.id}/readStatus/${userId}`
+            )
+          )
         );
-        
+
         // Attach read status to chats
         newChats.forEach((chat, index) => {
           chat.unread = statuses[index].data.unread;
         });
 
-        setChats([...chats, ...newChats])
+        setChats([...chats, ...newChats]);
+      } catch (err) {
+        showToastError(err.response?.data?.message);
       }
-      catch (err) {
-        showToastError(err.response?.data?.message)
-      }
-    }
+    };
 
     fetchChats();
   }, []);
@@ -342,15 +346,12 @@ const ChatRoom = () => {
         ]
       }-400`,
       avatarText: chatData.name.charAt(0).toUpperCase(),
-      lastMessage: "Start a conversation..."
-    }
+      lastMessage: "Start a conversation...",
+    };
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/chatroom",
-        data
-      );
-      if (response.status === 201) {        
+      const response = await axios.post("http://localhost:3000/chatroom", data);
+      if (response.status === 201) {
         const newChat = response.data?.chatroom;
         newChat.unread = true;
         setChats([newChat, ...chats]);
@@ -382,11 +383,14 @@ const ChatRoom = () => {
   const handleChatClick = async (chatId) => {
     setCurrentChatId(chatId);
     setChats(
-      chats.map((chat) => chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
+      chats.map((chat) =>
+        chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
 
-    await axios.put(`http://localhost:3000/chatroom/${chatId}/readStatus/${userId}`)
+    await axios.put(
+      `http://localhost:3000/chatroom/${chatId}/readStatus/${userId}`
+    );
 
     // On mobile, hide sidebar after selecting
     if (window.innerWidth < 768) {
@@ -533,7 +537,12 @@ const ChatRoom = () => {
         {renderMainContent()}
 
         {showChatInfo && currentChatId && currentChat?.status !== "pending" && (
-          <ChatInfo chatId={currentChatId} currentChatId={currentChatId} setCurrentChatId={setCurrentChatId} originalChats={chats} setOriginalChats={setChats} />
+          <ChatInfo
+            chatId={currentChatId}
+            setCurrentChatId={setCurrentChatId}
+            originalChats={chats}
+            setOriginalChats={setChats}
+          />
         )}
       </div>
 
