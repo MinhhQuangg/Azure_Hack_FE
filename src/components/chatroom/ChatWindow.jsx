@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import Avatar from "./ReusableComponents";
+import { AvatarChat, AvatarPerson } from "./ReusableComponents";
 import { IconButton } from "./ReusableComponents";
 import {
   SpeechConfig,
@@ -22,59 +22,61 @@ import {
 import { languages } from "../../constants";
 
 const MessageBubble = ({ message }) => {
-  if (message.typing) {
-    return (
-      <div
-        className={`flex mb-4 ${
-          message.fromUser ? "justify-end" : "justify-start"
-        }`}
-      >
-        {!message.fromUser && (
-          <div className="mr-2">
-            <Avatar
-              color={message.senderColor}
-              text={message.sender}
-              size="sm"
-            />
-          </div>
-        )}
-        <div className="bg-gray-200 rounded-lg p-3 inline-block max-w-md">
-          <div className="flex space-x-1">
-            <div
-              className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
-              style={{ animationDelay: "0ms" }}
-            ></div>
-            <div
-              className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
-              style={{ animationDelay: "75ms" }}
-            ></div>
-            <div
-              className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
-              style={{ animationDelay: "150ms" }}
-            ></div>
-          </div>
-          <div className="font-['Inter'] text-xs text-[#65686C] mt-1">
-            {message.sender} is typing...
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // console.log(message);
+
+  // if (message.typing) {
+  //   return (
+  //     <div
+  //       className={`flex mb-4 ${
+  //         message.fromUser ? "justify-end" : "justify-start"
+  //       }`}
+  //     >
+  //       {!message.fromUser && (
+  //         <div className="mr-2">
+  //           <AvatarPerson
+  //             // color={message.senderColor}
+  //             // text={message.sender}
+  //             // size="sm"
+  //           />
+  //         </div>
+  //       )}
+  //       <div className="bg-gray-200 rounded-lg p-3 inline-block max-w-md">
+  //         <div className="flex space-x-1">
+  //           <div
+  //             className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
+  //             style={{ animationDelay: "0ms" }}
+  //           ></div>
+  //           <div
+  //             className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
+  //             style={{ animationDelay: "75ms" }}
+  //           ></div>
+  //           <div
+  //             className="h-2 w-2 bg-gray-500 rounded-full animate-pulse"
+  //             style={{ animationDelay: "150ms" }}
+  //           ></div>
+  //         </div>
+  //         <div className="font-['Inter'] text-xs text-[#65686C] mt-1">
+  //           {message.sender} is typing...
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div
       className={`flex mb-4 ${
-        message.fromUser ? "justify-end" : "justify-start"
+        message?.fromUser ? "justify-end" : "justify-start"
       }`}
     >
       {!message.fromUser && (
         <div className="mr-2">
-          <Avatar color={message.senderColor} text={message.sender} size="sm" />
+          <AvatarPerson person={message?.sender} size="sm" />
         </div>
       )}
       <div>
         <div className="font-['Inter'] text-xs text-[#65686C]">
-          {message.sender}
+          {message?.sender?.given_name}
         </div>
         <div
           className={`font-['Inter'] rounded-lg p-3 inline-block max-w-md ${
@@ -83,10 +85,10 @@ const MessageBubble = ({ message }) => {
               : "bg-gray-200 text-black"
           }`}
         >
-          {message.content}
+          {message?.content}
           <div className="font-['Inter'] text-xs text-[#65686C] mt-1 text-right">
-            {message.timestamp
-              ? new Date(message.timestamp).toLocaleTimeString([], {
+            {message?.timestamp
+              ? new Date(message?.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })
@@ -198,7 +200,7 @@ const ChatWindow = ({
             <FaBars />
           </button>
 
-          <Avatar
+          <AvatarChat
             color={currentChat.avatar_color}
             text={currentChat.avatar_text}
           />
@@ -239,7 +241,7 @@ const ChatWindow = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
-        {messages.map((message) => (
+        {messages.map((message, key) => (
           <MessageBubble key={message.id} message={message} />
         ))}
       </div>

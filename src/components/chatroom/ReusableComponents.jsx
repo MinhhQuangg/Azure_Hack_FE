@@ -1,4 +1,4 @@
-const Avatar = ({ color, text, size = "md", url }) => {
+const AvatarChat = ({ color, text, size = "md", url }) => {
   const sizeClasses = {
     sm: "h-8 w-8",
     md: "h-10 w-10",
@@ -30,7 +30,30 @@ const Avatar = ({ color, text, size = "md", url }) => {
   );
 };
 
-export default Avatar;
+const AvatarPerson = ({ size = "md", person }) => {
+  // console.log(person);
+  
+
+  const sizeClasses = {
+    sm: "h-8 w-8",
+    md: "h-10 w-10",
+    lg: "h-12 w-12",
+  };
+
+  return person ? (
+    <img
+      src={person?.profile_picture}
+      alt="Avatar"
+      className={`${sizeClasses[size]} rounded-full object-cover`}
+    />
+  ) : (
+    <div
+      className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-bold`}
+    >
+      <span>{person?.given_name}</span>
+    </div>
+  );
+};
 
 const IconButton = ({ icon, onClick, color = "text-gray-600" }) => {
   return (
@@ -56,4 +79,4 @@ const TabButton = ({ text, isActive, onClick }) => {
   );
 };
 
-export { Avatar, IconButton, TabButton };
+export { AvatarChat, AvatarPerson, IconButton, TabButton };
