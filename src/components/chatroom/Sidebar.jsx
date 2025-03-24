@@ -1,4 +1,4 @@
-import Avatar from "./ReusableComponents.jsx";
+import { AvatarChat, AvatarPerson } from "./ReusableComponents.jsx";
 import { TabButton } from "./ReusableComponents.jsx";
 import { IconButton } from "./ReusableComponents.jsx";
 import { FaSearch, FaCommentDots } from "react-icons/fa";
@@ -19,7 +19,7 @@ const showTime = (timestamp) => {
   if (diffInMonths < 12) return `${diffInMonths}m`; // Less than 1 year
   const diffInYears = Math.floor(diffInMonths / 12);
   return `${diffInYears} y`; // More than 1 year
-}
+};
 
 const Sidebar = ({
   chats,
@@ -84,7 +84,7 @@ const Sidebar = ({
               }`}
               onClick={() => onChatClick(chat.id)}
             >
-              <Avatar color={chat.avatar_color} text={chat.avatar_text} />
+              <AvatarChat color={chat.avatar_color} text={chat.avatar_text} />
               <div className="ml-3 flex-1">
                 <div className="flex justify-between">
                   <span className="font-['Montserrat'] font-semibold">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { styles } from "../../styles";
-import Avatar, { IconButton } from "./ReusableComponents";
+import { AvatarChat, AvatarPerson, IconButton } from "./ReusableComponents";
 import {
   FaGlobe,
   FaEdit,
@@ -59,10 +59,11 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   return (
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center">
-        <Avatar
-          text={given_name.charAt(0).toUpperCase()}
+        <AvatarPerson
+          person={member}
+          // text={given_name.charAt(0).toUpperCase()}
           size="sm"
-          url={profile_picture}
+          // url={profile_picture}
         />
         <span className="font-['Inter'] ml-2">
           {given_name}
@@ -365,7 +366,7 @@ const ChatInfo = ({
 
   return (
     <div
-      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white overflow-auto`}
     >
       <div className="flex items-center justify-between p-4 border-b">
         {isEditingName ? (
@@ -460,10 +461,11 @@ const ChatInfo = ({
               className="flex items-center justify-between mb-2"
             >
               <div className="flex items-center">
-                <Avatar
-                  text={request.given_name.charAt(0).toUpperCase()}
+                <AvatarPerson
+                  person={request}
+                  // text={request.given_name.charAt(0).toUpperCase()}
                   size="sm"
-                  url={request.profile_picture}
+                  // url={request.profile_picture}
                 />
                 <span className="font-['Inter'] ml-2">
                   {request.given_name}

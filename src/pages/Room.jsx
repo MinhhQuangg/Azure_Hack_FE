@@ -1,6 +1,5 @@
 // ChatRoom.jsx
 import React, { useState, useEffect, useRef } from "react";
-import Avatar from "../components/chatroom/ReusableComponents.jsx";
 import Sidebar from "../components/chatroom/Sidebar.jsx";
 import ChatWindow from "../components/chatroom/ChatWindow.jsx";
 import { CHATS_DATA, ALL_MESSAGES } from "../components/chatroom/Data.jsx";
