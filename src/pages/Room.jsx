@@ -141,6 +141,21 @@ const ChatRoom = () => {
     return () => socketInstance.disconnect();
   }, [userId]);
 
+  useEffect(() => {
+    if (!socket || !currentChatId) return;
+    const handleReceiveMessage = (incomingMessage) => {
+      console.log("Received via socket:", incomingMessage);
+      setRoomMessages((prev) => {
+        const existing = prev[currentChatId] || [];
+        return { ...prev, [currentChatId]: [...existing, { ...incomingMessage, fromUser: false}] };
+      });
+    };
+    socket.on("receive-message", handleReceiveMessage);
+    return () => {
+      socket.off("receive-message", handleReceiveMessage);
+    };
+  }, [socket, currentChatId]);
+  
   // For the currently selected chat, we show that chat's messages or an empty array
   const currentChatMessages = roomMessages[currentChatId] || [];
   const currentChat = chats.find((c) => c.id === currentChatId) || null;
@@ -195,49 +210,57 @@ const ChatRoom = () => {
     return filtered;
   };
 
-  // 4. Send message => POST to the server, but only store in local dictionary
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentChatId) return;
+// 4. Send message => POST to the server, but also emit via socket
+const handleSendMessage = async () => {
+  //console.log("handleSendMessage was called, currentChatId=", currentChatId);
+  if (!newMessage.trim() || !currentChatId) return;
 
-    try {
-      // Save to DB
-      const response = await axios.post(
-        `http://localhost:3000/rooms/${currentChatId}/messages`,
-        { text: newMessage, userId: userId }
-      );
-      console.log(response.status, response.data);
-      const savedMessage = response.data;
+  try {
+    const response = await axios.post(
+      `http://localhost:3000/rooms/${currentChatId}/messages`,
+      { text: newMessage, userId: userId }
+    );
+    console.log(response.status, response.data);
 
-      // Mark fromUser = true
-      savedMessage.fromUser = true;
-      // Make a local timestamp
-      savedMessage.timestamp = new Date();
+    const savedMessage = response.data;
+    savedMessage.fromUser = true;
+    savedMessage.timestamp = new Date();
 
-      // Only put it in the dictionary for currentChatId
-      setRoomMessages((prev) => {
-        const existingArray = prev[currentChatId] || [];
-        return {
-          ...prev,
-          [currentChatId]: [...existingArray, savedMessage],
-        };
-      });
+    setRoomMessages((prev) => {
+      const existingArray = prev[currentChatId] || [];
+      return {
+        ...prev,
+        [currentChatId]: [...existingArray, savedMessage],
+      };
+    });
 
-      // Clear the input
-      setNewMessage("");
-
-      // Update last message in the chat list
-      const updated = chats.map((chat) =>
-        chat.id === currentChatId
-          ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
-          : chat
-      );
-      setChats(updated);
-
-    } catch (error) {
-      console.error(error);
-      showToastError(error.response?.data?.error || "Error sending message");
+    const messageToSend = {
+      content: savedMessage.content,
+      sender: userId || "Unknown",
+      senderColor: savedMessage.senderColor || "#ccc",
+      timestamp: new Date(),
+    };
+    
+    if (!socket) {
+      console.log("No socket reference, cannot emit!");
+    } else {
+      socket.emit("send-message", messageToSend, currentChatId);
     }
-  };
+
+    setNewMessage("");
+
+    const updated = chats.map((chat) =>
+      chat.id === currentChatId
+        ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
+        : chat
+    );
+    setChats(updated);
+  } catch (error) {
+    console.error(error);
+    showToastError(error.response?.data?.error || "Error sending message");
+  }
+};
+
 
   // 5. Create a new chat => POST to the server (no GET for messages)
   const handleCreateChat = async (chatData) => {
@@ -265,7 +288,6 @@ const ChatRoom = () => {
         // Optionally join the new room
         if (socket) {
           socket.emit("joinRoom", newChat.id);
-          console.log("Joined new room:", newChat.id);
         }
 
         // Start with an empty array for the new chat
@@ -305,7 +327,6 @@ const ChatRoom = () => {
     // Join the room if using Socket for presence
     if (socket) {
       socket.emit("joinRoom", chatId);
-      console.log("Joined existing room:", chatId);
     }
 
     // On mobile, hide sidebar

@@ -83,7 +83,7 @@ const MessageBubble = ({ message }) => {
               : "bg-gray-200 text-black"
           }`}
         >
-          {message.content}
+          {message.content || "(no content)"}
           <div className="font-['Inter'] text-xs text-[#65686C] mt-1 text-right">
             {message.timestamp
               ? new Date(message.timestamp).toLocaleTimeString([], {
@@ -150,6 +150,7 @@ const ChatWindow = ({
       e.target.value = "";
     }
   };
+
   const handleSpeechToTextStart = () => {
     const speechConfig = SpeechConfig.fromSubscription(speechKey, speechRegion);
     const audioConfig = AudioConfig.fromDefaultMicrophoneInput();
@@ -185,30 +186,19 @@ const ChatWindow = ({
       );
     }
   };
+
   return (
-    <div
-      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}
-    >
+    <div className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 flex-1 flex flex-col bg-gray-50`}>
       <div className="p-4 border-b bg-white flex items-center justify-between">
         <div className="flex items-center">
-          <button
-            className="md:hidden mr-2 text-gray-600"
-            onClick={toggleSidebar}
-          >
+          <button className="md:hidden mr-2 text-gray-600" onClick={toggleSidebar}>
             <FaBars />
           </button>
 
-          <Avatar
-            color={currentChat.avatar_color}
-            text={currentChat.avatar_text}
-          />
+          <Avatar color={currentChat.avatar_color} text={currentChat.avatar_text} />
           <div className="ml-3">
-            <h2 className="font-['Montserrat'] font-bold text-[1.35rem]">
-              {currentChat.name}
-            </h2>
-            <p className="font-['Inter'] text-xs text-gray-500">
-              {currentChat.description || ""}
-            </p>
+            <h2 className="font-['Montserrat'] font-bold text-[1.35rem]">{currentChat.name}</h2>
+            <p className="font-['Inter'] text-xs text-gray-500">{currentChat.description || ""}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -219,12 +209,8 @@ const ChatWindow = ({
               onChange={(e) => setLanguage(e.target.value)}
               className="font-['Inter'] w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
             >
-              {/* <option>English</option>
-              <option>Spanish</option>
-              <option>French</option>
-              <option>German</option> */}
-              {languages.map((lang, i) => (
-                <option key={i} value={lang.code}>
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
                   {lang.language}
                 </option>
               ))}
@@ -239,17 +225,12 @@ const ChatWindow = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+        {messages.map((message, idx) => (
+          <MessageBubble key={message.id || `${idx}-${message.timestamp}`} message={message} />
         ))}
       </div>
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
       <input
         type="file"
         ref={imageInputRef}
@@ -278,9 +259,7 @@ const ChatWindow = ({
             )
           }
           className="hidden sm:block"
-          onClick={
-            isRecording ? handleSpeechToTextStop : handleSpeechToTextStart
-          }
+          onClick={isRecording ? handleSpeechToTextStop : handleSpeechToTextStart}
         />
         <div className="flex-1 mx-2">
           <textarea
@@ -292,10 +271,7 @@ const ChatWindow = ({
             rows={1}
           />
         </div>
-        <IconButton
-          icon={<FaPaperPlane color="#081C48" />}
-          onClick={onSendMessage}
-        />
+        <IconButton icon={<FaPaperPlane color="#081C48" />} onClick={onSendMessage} />
       </div>
     </div>
   );
