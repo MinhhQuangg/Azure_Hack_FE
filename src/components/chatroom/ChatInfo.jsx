@@ -100,7 +100,13 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   );
 };
 
-const ChatInfo = ({ groupId }) => {
+const ChatInfo = ({
+  group,
+  currentChatId,
+  setCurrentChatId,
+  originalChats,
+  setOriginalChats,
+}) => {
   const [language, setLanguage] = useState("English");
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
@@ -119,7 +125,7 @@ const ChatInfo = ({ groupId }) => {
         setLoading(true);
         setTimeout(() => {
           const mockData = {
-            id: groupId || "group-1",
+            id: group.id || "group-1",
             name: "Group 1",
             createdAt: "2025-03-03T12:00:00Z",
             inviteLink: "chatlas/supercoolplaceholderlink/id.com",
@@ -164,7 +170,7 @@ const ChatInfo = ({ groupId }) => {
     };
 
     fetchGroupData();
-  }, [groupId]);
+  }, [group.id]);
 
   const isCurrentUserAdmin = groupData?.members.some(
     (member) => member.id === currentUserId && member.isAdmin
@@ -172,8 +178,15 @@ const ChatInfo = ({ groupId }) => {
 
   const handleLeaveGroup = async () => {
     try {
-      console.log("Left group", groupId);
+      console.log("Left group", group.id);
       showToastSuccess(`Left group successfully`);
+      const remainingChats = originalChats.filter(
+        (chat) => chat.id !== group.id
+      );
+      console.log(group.id, remainingChats);
+
+      setOriginalChats(remainingChats);
+      setCurrentChatId(remainingChats[0].id);
       setIsLeaveModalOpen(false);
     } catch (err) {
       console.error("Failed to leave group", err);
@@ -183,13 +196,13 @@ const ChatInfo = ({ groupId }) => {
   const handleUserAction = async (userId, action) => {
     try {
       if (action === "makeAdmin") {
-        // await api.makeUserAdmin(groupId, userId);
+        // await api.makeUserAdmin(group.id, userId);
         console.log("Made user admin", userId);
       } else if (action === "removeAdmin") {
-        // await api.removeUserAdmin(groupId, userId);
+        // await api.removeUserAdmin(group.id, userId);
         console.log("Removed admin status from user", userId);
       } else if (action === "removeMember") {
-        // await api.removeMember(groupId, userId);
+        // await api.removeMember(group.id, userId);
         console.log("Removed member", userId);
       }
       setIsUserInfoModalOpen(false);

@@ -151,11 +151,35 @@ const ChatRoom = () => {
     }))
   );
 
-  const [currentChatId, setCurrentChatId] = useState(null);
-  const [newMessage, setNewMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [filteredChats, setFilteredChats] = useState(chats);
+  useEffect(() => {
+    let filtered = [...chats];
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (chat) =>
+          chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (activeFilter === "unread") {
+      filtered = filtered.filter((chat) => chat.unread);
+    }
+
+    setFilteredChats(filtered);
+  }, [chats, activeFilter]);
+
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const currentChat = currentChatId
+    ? chats.find((chat) => chat.id === currentChatId) || null
+    : null;
+
+  const [newMessage, setNewMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
@@ -194,28 +218,6 @@ const ChatRoom = () => {
       setCurrentChatId(chats.length > 0 ? chats[0].id : null);
     }
   }, [inviteLink]);
-
-  const currentChat = currentChatId
-    ? chats.find((chat) => chat.id === currentChatId) || null
-    : null;
-
-  const getFilteredChats = () => {
-    let filtered = [...chats];
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (chat) =>
-          chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (activeFilter === "unread") {
-      filtered = filtered.filter((chat) => chat.unread);
-    }
-
-    return filtered;
-  };
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !currentChatId) return;
@@ -417,7 +419,9 @@ const ChatRoom = () => {
         <div className="flex flex-1 overflow-hidden">
           {showSidebar && (
             <Sidebar
-              chats={getFilteredChats()}
+              chats={filteredChats}
+              originalChats={chats}
+              setOriginalChats={setChats}
               currentChatId={currentChatId}
               onChatClick={handleChatClick}
               searchTerm={searchTerm}
@@ -470,7 +474,9 @@ const ChatRoom = () => {
       <div className="flex flex-1 overflow-hidden">
         {showSidebar && (
           <Sidebar
-            chats={getFilteredChats()}
+            chats={filteredChats}
+            originalChats={chats}
+            setOriginalChats={setChats}
             currentChatId={currentChatId}
             onChatClick={handleChatClick}
             searchTerm={searchTerm}
@@ -484,7 +490,13 @@ const ChatRoom = () => {
         {renderMainContent()}
 
         {showChatInfo && currentChatId && currentChat?.status !== "pending" && (
-          <ChatInfo group={currentChat} />
+          <ChatInfo
+            group={currentChat}
+            currentChatId={currentChatId}
+            setCurrentChatId={setCurrentChatId}
+            originalChats={chats}
+            setOriginalChats={setChats}
+          />
         )}
       </div>
 

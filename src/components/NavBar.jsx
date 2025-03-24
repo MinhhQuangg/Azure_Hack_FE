@@ -89,7 +89,10 @@ const NavBar = () => {
           ))}
         </ul>
         {user ? (
-          <div className="hidden sm:flex gap-4">
+          <div
+            className="hidden sm:flex w-[30%] gap-4"
+            style={{ justifyContent: "flex-end" }}
+          >
             <div
               className="relative"
               onMouseEnter={handleMouseEnter}
@@ -102,9 +105,12 @@ const NavBar = () => {
               </div>
 
               {isDropdownVisible && (
-                <div className="absolute top-5 bg-primary border border-gray-300 rounded-lg shadow-lg w-40 p-2">
+                <div
+                  className="font-['Montserrat'] absolute top-6 bg-[#FFF48D] rounded-lg shadow-lg w-40 p-2"
+                  style={buttonShadow}
+                >
                   <button
-                    className="w-full text-left py-2 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
+                    className="w-full text-left py-2 px-3 text-sm font-semibold hover:underline rounded-lg"
                     onClick={handleLogout}
                   >
                     Log out
