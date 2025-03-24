@@ -101,7 +101,7 @@ const MemberItem = ({ member, currentUserId, isAdmin, onUserInfoClick }) => {
   );
 };
 
-const ChatInfo = ({chatId, group, currentChatId setCurrentChatId, originalChats, setOriginalChats,}) => {
+const ChatInfo = ({chatId, group, currentChatId, setCurrentChatId, originalChats, setOriginalChats,}) => {
   const userId = localStorage.getItem('user_id')
   const [language, setLanguage] = useState("English");
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
