@@ -143,9 +143,9 @@ const ChatRoom = () => {
   const [messages, setMessages] = useState([]);
   // No chat selected initially => triggers EmptyState
   const [currentChatId, setCurrentChatId] = useState(null);
-  const currentChat = currentChatId
-    ? chats.find((chat) => chat.id === currentChatId) || null
-    : null;
+  // const currentChat = currentChatId
+  //   ? chats.find((chat) => chat.id === currentChatId) || null
+  //   : null;
 
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
