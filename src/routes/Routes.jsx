@@ -10,8 +10,6 @@ import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import ChatRoom from "../pages/Room";
 import Error from "../pages/Error";
-import RequestJoin from "../components/chatroom/RequestJoin";
-import WaitingApproval from "../components/chatroom/WaitingApproval";
 import { AuthProvider } from "../context/authContext";
 import Help from "../pages/Help";
 
@@ -25,6 +23,7 @@ export const Routes = () => {
           <Route path="/Signin" element={<Signin />} />
           <Route path="/Signup" element={<Signup />} />
           <Route path="/Chat" element={<ChatRoom />} />
+          <Route path="/Chat/:chatId" element={<ChatRoom />} />
           <Route path="/Help" element={<Help />} />
           <Route path="*" element={<Error />} />
         </RouteComponent>

@@ -12,119 +12,122 @@ import RequestJoin from "../components/chatroom/RequestJoin.jsx";
 import WaitingApproval from "../components/chatroom/WaitingApproval.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
-// Empty state component displayed if no chat is selected
-const EmptyState = () => {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
-      <div className="text-center p-8">
-        <div className="text-6xl mb-4">💬</div>
-        <h2 className="text-2xl font-bold text-gray-700 mb-2">
-          Welcome to Chatlas!
-        </h2>
-        <p className="text-gray-500 mb-6">
-          Select a conversation or start a new one
-        </p>
-        <button className="bg-yellow-300 hover:bg-yellow-400 px-4 py-2 rounded-full font-medium transition">
-          Start New Chat
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// Modal component for creating a new chat (Chat Name + Description only)
-const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
-  const [chatName, setChatName] = useState("");
-  const [description, setDescription] = useState("");
-
-  if (!isOpen) return null;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!chatName.trim()) return;
-
-    // Create a new chat object locally
-    onCreateChat({
-      name: chatName,
-      description: description,
-    });
-
-    setChatName("");
-    setDescription("");
-    onClose();
-  };
-
-  const availableUsers = [
-    { id: 1, name: "Alice", avatar: "A", color: "bg-purple-400" },
-    { id: 2, name: "Bob", avatar: "B", color: "bg-green-400" },
-    { id: 3, name: "Charlie", avatar: "C", color: "bg-blue-400" },
-  ];
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg">
-        <div className="font-['Montserrat'] p-4 border-b flex justify-between items-center relative">
-          <h2 className="text-xl font-bold">New Chat</h2>
+const ChatRoom = () => {
+  // Empty state component displayed if no chat is selected
+  const EmptyState = () => {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
+        <div className="text-center p-8">
+          <div className="text-6xl mb-4">💬</div>
+          <h2 className="text-2xl font-bold text-gray-700 mb-2">
+            Welcome to Chatlas!
+          </h2>
+          <p className="text-gray-500 mb-6">
+            Select a conversation or start a new one
+          </p>
           <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
+            className="bg-yellow-300 hover:bg-yellow-400 px-4 py-2 rounded-full font-medium transition"
+            onClick={() => setIsNewChatModalOpen(true)}
           >
-            <FaTimes size={16} />
+            Start New Chat
           </button>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-4">
-          {/* Chat Name Field */}
-          <div className="mb-4">
-            <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
-              Chat Name
-            </label>
-            <input
-              type="text"
-              value={chatName}
-              onChange={(e) => setChatName(e.target.value)}
-              className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
-              placeholder="Enter chat name"
-              required
-            />
-          </div>
-
-          {/* Description Field (Replaces "Add Users") */}
-          <div className="mb-4">
-            <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
-              placeholder="Enter a description (optional)"
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="font-['Montserrat'] font-semibold bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="font-['Montserrat'] font-semibold bg-yellow-400 hover:bg-yellow-300 px-4 py-2 rounded-lg"
-            >
-              Create Chat
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-const ChatRoom = () => {
-  const { inviteLink } = useParams();
+  // Modal component for creating a new chat (Chat Name + Description only)
+  const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
+    const [chatName, setChatName] = useState("");
+    const [description, setDescription] = useState("");
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (!chatName.trim()) return;
+
+      // Create a new chat object locally
+      onCreateChat({
+        name: chatName,
+        description: description,
+      });
+
+      setChatName("");
+      setDescription("");
+      onClose();
+    };
+
+    const availableUsers = [
+      { id: 1, name: "Alice", avatar: "A", color: "bg-purple-400" },
+      { id: 2, name: "Bob", avatar: "B", color: "bg-green-400" },
+      { id: 3, name: "Charlie", avatar: "C", color: "bg-blue-400" },
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg w-full max-w-md mx-4 shadow-lg">
+          <div className="font-['Montserrat'] p-4 border-b flex justify-between items-center relative">
+            <h2 className="text-xl font-bold">New Chat</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 absolute right-4 top-4"
+            >
+              <FaTimes size={16} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-4">
+            {/* Chat Name Field */}
+            <div className="mb-4">
+              <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
+                Chat Name
+              </label>
+              <input
+                type="text"
+                value={chatName}
+                onChange={(e) => setChatName(e.target.value)}
+                className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                placeholder="Enter chat name"
+                required
+              />
+            </div>
+
+            {/* Description Field (Replaces "Add Users") */}
+            <div className="mb-4">
+              <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="placeholder-[#65686C] shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                placeholder="Enter a description (optional)"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="font-['Montserrat'] font-semibold bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="font-['Montserrat'] font-semibold bg-yellow-400 hover:bg-yellow-300 px-4 py-2 rounded-lg"
+              >
+                Create Chat
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const { chatId: urlChatId, inviteLink } = useParams();
   const navigate = useNavigate();
   //   const [chats, setChats] = useState(
   //     CHATS_DATA.map((chat) => ({
@@ -149,7 +152,7 @@ const ChatRoom = () => {
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
-  const [showJoinRequest, setShowJoinRequest] = useState(true);
+  const [showJoinRequest, setShowJoinRequest] = useState(false);
   const [invitedChatDetails, setInvitedChatDetails] = useState({
     id: 999,
     name: "Invited Chat Room",
@@ -211,6 +214,7 @@ const ChatRoom = () => {
   const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
 
   // Load all most current chats to side bar
+
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -238,8 +242,8 @@ const ChatRoom = () => {
         showToastError(err.response?.data?.message);
       }
     };
-
     fetchChats();
+    setCurrentChatId(urlChatId);
   }, []);
 
   // Filter chats
@@ -381,6 +385,9 @@ const ChatRoom = () => {
   // Handle selecting a chat
   const handleChatClick = async (chatId) => {
     setCurrentChatId(chatId);
+
+    navigate(`/Chat/${chatId}`);
+
     setChats(
       chats.map((chat) =>
         chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
@@ -427,7 +434,7 @@ const ChatRoom = () => {
     setShowJoinRequest(false);
 
     if (chats.length > 0) {
-      setCurrentChatId(chats[0].id);
+      setCurrentChatId(urlChatId);
     } else {
       setCurrentChatId(null);
     }
@@ -488,7 +495,7 @@ const ChatRoom = () => {
   }
 
   const renderMainContent = () => {
-    if (!currentChatId) {
+    if (!currentChatId || !urlChatId) {
       return <EmptyState />;
     }
 
@@ -535,14 +542,17 @@ const ChatRoom = () => {
 
         {renderMainContent()}
 
-        {showChatInfo && currentChatId && currentChat?.status !== "pending" && (
-          <ChatInfo
-            chatId={currentChatId}
-            setCurrentChatId={setCurrentChatId}
-            originalChats={chats}
-            setOriginalChats={setChats}
-          />
-        )}
+        {urlChatId &&
+          showChatInfo &&
+          currentChatId &&
+          currentChat?.status !== "pending" && (
+            <ChatInfo
+              chatId={currentChatId}
+              setCurrentChatId={setCurrentChatId}
+              originalChats={chats}
+              setOriginalChats={setChats}
+            />
+          )}
       </div>
 
       <NewChatModal
