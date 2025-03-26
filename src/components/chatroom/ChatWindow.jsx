@@ -69,7 +69,8 @@ const ChatWindow = ({
   showChatInfo,
   onFileUpload,
   onImageUpload,
-  onLoadMoreMessages
+  onLoadMoreMessages,
+  
 }) => {
   const [language, setLanguage] = useState("en");
   const speechKey = import.meta.env.VITE_SPEECH_KEY;

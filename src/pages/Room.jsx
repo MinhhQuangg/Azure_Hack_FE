@@ -124,7 +124,7 @@ const ChatRoom = () => {
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
-
+  const [isPrepending, setIsPrepending] = useState(false);
   const [messagePagination, setMessagePagination] = useState({}); // { [chatId]: { cursor, hasMore } }
 
   const messageContainerRef = useRef(null);
@@ -313,7 +313,7 @@ const handleSendMessage = async () => {
       messageContainerRef.current.scrollTop =
 messageContainerRef.current.scrollHeight;
     }
-  }, [currentChatMessages]);
+  }, [currentChatMessages, isPrepending]);
 
   // 7. Handle selecting a chat
   const handleChatClick = async (chatId) => {
@@ -404,6 +404,8 @@ messageContainerRef.current.scrollHeight;
     const { cursor, hasMore } = messagePagination[chatId] || {};
     if (hasMore === false) return;
 
+    setIsPrepending(true);
+
     try {
       const res = await axios.get(`http://localhost:3000/chatroom/${chatId}/messages`, {
         params: { cursor }
@@ -428,6 +430,8 @@ messageContainerRef.current.scrollHeight;
       }));
     } catch (err) {
       console.error("Failed to load older messages:", err);
+    } finally {
+      setIsPrepending(false);
     }
   };
   
