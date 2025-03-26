@@ -128,6 +128,8 @@ const ChatRoom = () => {
   };
 
   const { chatId: urlChatId, inviteLink } = useParams();
+  console.log(urlChatId, inviteLink);
+
   const navigate = useNavigate();
   //   const [chats, setChats] = useState(
   //     CHATS_DATA.map((chat) => ({
