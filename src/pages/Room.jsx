@@ -137,7 +137,7 @@ const ChatRoom = () => {
   const [isPrepending, setIsPrepending] = useState(false);
   const [messagePagination, setMessagePagination] = useState({}); // { [chatId]: { cursor, hasMore } }
 
-  const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
+  // const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
   const messageContainerRef = useRef(null);
 
@@ -184,17 +184,22 @@ const ChatRoom = () => {
             },
           }));
 
-          setIsMessagesLoaded(true);
+          // setIsMessagesLoaded(true);
         } catch (err) {
           console.error("Error loading initial messages:", err);
           showToastError("Failed to load messages");
         }
         console.log(11111);
-      } else {
-        setIsMessagesLoaded(true);
       }
+      // else {
+      //   setIsMessagesLoaded(true);
+      // }
     };
     loadInitialMessages();
+    const container = messageContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight - container.clientHeight;
+    }
   }, []);
 
   useEffect(() => {
@@ -386,24 +391,37 @@ const ChatRoom = () => {
 
   // 6. Auto-scroll
   useEffect(() => {
-    if (messageContainerRef.current && isMessagesLoaded) {
-      messageContainerRef.current.scrollTop =
-        messageContainerRef.current.scrollHeight;
+    const container = messageContainerRef.current;
+    if (!container) return;
 
-      setIsMessagesLoaded(false);
+    // Check if it's a new chat or initial load
+    const isNewChatOrInitialLoad =
+      currentChatMessages.length > 0 &&
+      (!lastScrollChatId || lastScrollChatId !== currentChatId);
+
+    // Only auto-scroll if we're already near the bottom or it's a new chat
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      100;
+
+    if ((isNearBottom || isNewChatOrInitialLoad) && !isPrepending) {
+      container.scrollTop = container.scrollHeight;
     }
-  }, [currentChatMessages, isMessagesLoaded, isPrepending]);
-  // }, [currentChat?.messages]);
+  }, [currentChatMessages, isPrepending, currentChatId, lastScrollChatId]);
 
   useEffect(() => {
-    console.log("id", currentChatId);
+    const container = messageContainerRef.current;
+    if (container) {
+      // Scroll to the very bottom
+      container.scrollTop = container.scrollHeight;
+    }
   }, [currentChatId]);
 
   // 7. Handle selecting a chat
   const handleChatClick = async (chatId) => {
     setLastScrollChatId(currentChatId);
     setCurrentChatId(chatId);
-    setIsMessagesLoaded(false);
+    // setIsMessagesLoaded(false);
     navigate(`/Chat/${chatId}`);
     // Mark as read
     setChats((prev) =>
@@ -465,15 +483,20 @@ const ChatRoom = () => {
           },
         }));
 
-        setIsMessagesLoaded(true);
+        // setIsMessagesLoaded(true);
       } catch (err) {
         console.error("Error loading initial messages:", err);
         showToastError("Failed to load messages");
       }
       console.log(11111);
-    } else {
-      setIsMessagesLoaded(true);
     }
+    const container = messageContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight - container.clientHeight;
+    }
+    // else {
+    //   setIsMessagesLoaded(true);
+    // }
   };
 
   // 8. Handle resizing
@@ -506,6 +529,10 @@ const ChatRoom = () => {
 
   const loadMoreMessages = async (chatId) => {
     console.log(chatId, lastScrollChatId);
+
+    const container = messageContainerRef.current;
+    const initialScrollHeight = container.scrollHeight;
+    const initialScrollTop = container.scrollTop;
 
     if (chatId !== lastScrollChatId) {
       setLastScrollChatId(currentChatId);
@@ -554,6 +581,14 @@ const ChatRoom = () => {
           hasMore: res.data.hasMore,
         },
       }));
+
+      requestAnimationFrame(() => {
+        if (container) {
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop =
+            newScrollHeight - initialScrollHeight + initialScrollTop;
+        }
+      });
     } catch (err) {
       console.error("Failed to load older messages:", err);
       showToastError("Failed to load older messages");

@@ -33,7 +33,7 @@ const Sidebar = ({
 }) => {
   return (
     <div
-      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-64 border-r bg-white flex flex-col`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-80 border-r bg-white flex flex-col`}
     >
       {/* Sidebar Header */}
       <div className="p-4 border-b flex justify-between items-center">
@@ -94,7 +94,7 @@ const Sidebar = ({
                     {showTime(chat.updated_at)}
                   </span>
                 </div>
-                <p className="font-['Inter'] text-[#65686C] text-sm truncate w-[147px] overflow-hidden">
+                <p className="font-['Inter'] text-[#65686C] text-sm truncate w-[220px] overflow-hidden">
                   {chat.last_message}
                 </p>
               </div>

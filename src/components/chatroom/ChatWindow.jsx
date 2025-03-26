@@ -19,8 +19,6 @@ import {
 import { languages } from "../../constants";
 
 const MessageBubble = ({ message, currentUserId, currentChat }) => {
-  // console.log(message);
-  // console.log(currentChat);
   return (
     <div
       className={`flex mb-4 ${
@@ -259,17 +257,35 @@ const ChatWindow = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
-        {
-          // translatedMessages
-          messages.map((message, i) => (
-            <MessageBubble
-              key={i}
-              message={message}
-              currentUserId={currentUserId}
-              currentChat={currentChat}
-            />
-          ))
-        }
+        {messages.map((message, i) => {
+          const currentDate = new Date(message.created_at);
+          const prevDate = i > 0 ? new Date(messages[i - 1].created_at) : null;
+
+          const shouldShowDateSeparator =
+            i === 0 ||
+            currentDate.getFullYear() !== prevDate.getFullYear() ||
+            currentDate.getMonth() !== prevDate.getMonth() ||
+            currentDate.getDate() !== prevDate.getDate();
+
+          return (
+            <>
+              {shouldShowDateSeparator && (
+                <div className="font-['Inter'] text-xs font-semibold flex justify-center items-center mb-4">
+                  {currentDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </div>
+              )}
+              <MessageBubble
+                message={message}
+                currentUserId={currentUserId}
+                currentChat={currentChat}
+              />
+            </>
+          );
+        })}
       </div>
 
       <input

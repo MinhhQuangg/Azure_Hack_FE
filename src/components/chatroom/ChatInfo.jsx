@@ -151,7 +151,8 @@ const ChatInfo = ({
             createdAt: chatRoom.created_at,
             description: chatRoom.description,
             adminId: chatRoom.admin_id,
-            inviteLink: `abc.com/${chatRoom.id}`,
+            // inviteLink: `abc.com/${chatRoom.id}`,
+            inviteLink: `localhost:5173/Chat/${chatRoom.id}`,
             members: members,
             joinRequests: pendingMembers,
           };
@@ -333,7 +334,7 @@ const ChatInfo = ({
   if (loading) {
     return (
       <div
-        className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
+        className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-80 border-l border-gray-200 bg-white items-center justify-center`}
       >
         <p>Loading...</p>
       </div>
@@ -343,7 +344,7 @@ const ChatInfo = ({
   if (error) {
     return (
       <div
-        className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white items-center justify-center`}
+        className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-80 border-l border-gray-200 bg-white items-center justify-center`}
       >
         <p className="text-red-500">{error}</p>
         <button
@@ -366,7 +367,7 @@ const ChatInfo = ({
 
   return (
     <div
-      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-64 border-l border-gray-200 bg-white overflow-auto`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 md:mt-5 flex flex-col w-80 border-l border-gray-200 bg-white overflow-auto`}
     >
       <div className="flex items-center justify-between p-4 border-b">
         {isEditingName ? (
