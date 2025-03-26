@@ -69,6 +69,7 @@ const ChatWindow = ({
   showChatInfo,
   onFileUpload,
   onImageUpload,
+  onLoadMoreMessages
 }) => {
   const [language, setLanguage] = useState("en");
   const speechKey = import.meta.env.VITE_SPEECH_KEY;
@@ -79,6 +80,22 @@ const ChatWindow = ({
   const [isRecording, setIsRecording] = useState(false);
   // const [translatedMessages, setTranslatedMessages] = useState([]);
 
+  // scroll
+  useEffect(() => {
+    const container = messageContainerRef.current;
+    if (!container) return;
+  
+    const handleScroll = () => {
+      if (container.scrollTop < 100 && currentChat?.id) {
+        onLoadMoreMessages(currentChat.id);
+      }
+    };
+  
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [currentChat, onLoadMoreMessages]);
+
+  
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
