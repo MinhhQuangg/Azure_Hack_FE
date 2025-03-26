@@ -85,7 +85,7 @@ const Sidebar = ({
               onClick={() => onChatClick(chat.id)}
             >
               <AvatarChat color={chat.avatar_color} text={chat.avatar_text} />
-              <div className="ml-3 flex-1">
+              <div className="ml-3">
                 <div className="flex justify-between">
                   <span className="font-['Montserrat'] font-semibold">
                     {chat.name}
@@ -94,7 +94,7 @@ const Sidebar = ({
                     {showTime(chat.updated_at)}
                   </span>
                 </div>
-                <p className="font-['Inter'] text-[#65686C] text-sm truncate">
+                <p className="font-['Inter'] text-[#65686C] text-sm truncate w-[147px] overflow-hidden">
                   {chat.last_message}
                 </p>
               </div>

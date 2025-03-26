@@ -124,7 +124,7 @@ const ChatRoom = () => {
   // Instead of a single [messages], we store a dictionary: { [roomId]: [msg, msg, ...], ... }
   const [roomMessages, setRoomMessages] = useState({});
   const [chats, setChats] = useState([]);
-  const [currentChatId, setCurrentChatId] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(urlChatId);
   const [lastScrollChatId, setLastScrollChatId] = useState(null);
   const [newMessage, setNewMessage] = useState("");
 
@@ -143,6 +143,59 @@ const ChatRoom = () => {
 
   // Single socket
   const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const loadInitialMessages = async () => {
+      if (!roomMessages[urlChatId]) {
+        console.log("Enter function fetch initial messages.");
+        console.log(`http://localhost:3000/chatroom/${urlChatId}/messages`);
+
+        try {
+          const res = await axios.get(
+            `http://localhost:3000/chatroom/${urlChatId}/messages`,
+            {
+              params: {
+                cursor: null,
+              },
+            }
+          );
+
+          setRoomMessages((prev) => ({
+            ...prev,
+            // [urlChatId]: res.data.messages,
+            [urlChatId]: res.data.messages
+              .filter((message) => message.chat_id === urlChatId)
+              .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+          }));
+
+          // setRoomMessages((prev) => {
+          //   const existing = prev[urlChatId] || [];
+          //   return {
+          //     ...prev,
+          //     [urlChatId]: [...newMessages, ...existing], // prepend
+          //   };
+          // });
+
+          setMessagePagination((prev) => ({
+            ...prev,
+            [urlChatId]: {
+              cursor: res.data.cursor,
+              hasMore: res.data.hasMore,
+            },
+          }));
+
+          setIsMessagesLoaded(true);
+        } catch (err) {
+          console.error("Error loading initial messages:", err);
+          showToastError("Failed to load messages");
+        }
+        console.log(11111);
+      } else {
+        setIsMessagesLoaded(true);
+      }
+    };
+    loadInitialMessages();
+  }, []);
 
   useEffect(() => {
     const socketInstance = io("http://localhost:3000", {
@@ -626,6 +679,7 @@ const ChatRoom = () => {
         showSidebar={showSidebar}
         showChatInfo={showChatInfo}
         onLoadMoreMessages={loadMoreMessages}
+        currentUserId={userId}
       />
     );
   };

@@ -18,15 +18,16 @@ import {
 } from "react-icons/fa";
 import { languages } from "../../constants";
 
-const MessageBubble = ({ message }) => {
+const MessageBubble = ({ message, currentUserId, currentChat }) => {
   // console.log(message);
+  // console.log(currentChat);
   return (
     <div
       className={`flex mb-4 ${
-        message?.fromUser ? "justify-end" : "justify-start"
+        message?.created_by === currentUserId ? "justify-end" : "justify-start"
       }`}
     >
-      {!message.fromUser && (
+      {!(message.created_by === currentUserId) && (
         <div className="mr-2">
           <AvatarPerson person={message?.sender} size="sm" />
         </div>
@@ -36,16 +37,17 @@ const MessageBubble = ({ message }) => {
           {message?.sender?.given_name}
         </div>
         <div
-          className={`font-['Inter'] rounded-lg p-3 inline-block max-w-md ${
-            message.fromUser
+          className={`font-['Inter'] rounded-lg p-3 inline-block max-w-md break-words whitespace-normal ${
+            message.created_by === currentUserId
               ? "bg-yellow-300 text-black"
-              : "bg-gray-200 text-black"
+              : // ? currentChat.avatar_color
+                "bg-gray-200 text-black"
           }`}
         >
           {message?.content}
           <div className="font-['Inter'] text-xs text-[#65686C] mt-1 text-right">
-            {message?.timestamp
-              ? new Date(message?.timestamp).toLocaleTimeString([], {
+            {message?.created_at
+              ? new Date(message?.created_at).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })
@@ -70,7 +72,7 @@ const ChatWindow = ({
   onFileUpload,
   onImageUpload,
   onLoadMoreMessages,
-  
+  currentUserId,
 }) => {
   const [language, setLanguage] = useState("en");
   const speechKey = import.meta.env.VITE_SPEECH_KEY;
@@ -85,18 +87,17 @@ const ChatWindow = ({
   useEffect(() => {
     const container = messageContainerRef.current;
     if (!container) return;
-  
+
     const handleScroll = () => {
       if (container.scrollTop < 100 && currentChat?.id) {
         onLoadMoreMessages(currentChat.id);
       }
     };
-  
+
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, [currentChat, onLoadMoreMessages]);
 
-  
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -261,7 +262,12 @@ const ChatWindow = ({
         {
           // translatedMessages
           messages.map((message, i) => (
-            <MessageBubble key={i} message={message} />
+            <MessageBubble
+              key={i}
+              message={message}
+              currentUserId={currentUserId}
+              currentChat={currentChat}
+            />
           ))
         }
       </div>
