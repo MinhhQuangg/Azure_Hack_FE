@@ -2,6 +2,7 @@ import { AvatarChat, AvatarPerson } from "./ReusableComponents.jsx";
 import { TabButton } from "./ReusableComponents.jsx";
 import { IconButton } from "./ReusableComponents.jsx";
 import { FaSearch, FaCommentDots } from "react-icons/fa";
+import { useEffect } from "react";
 
 const showTime = (timestamp) => {
   const sentTime = new Date(timestamp);
@@ -31,9 +32,10 @@ const Sidebar = ({
   setActiveFilter,
   onNewChat,
 }) => {
+  
   return (
     <div
-      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-64 border-r bg-white flex flex-col`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-72 border-r bg-white flex flex-col`}
     >
       {/* Sidebar Header */}
       <div className="p-4 border-b flex justify-between items-center">
@@ -68,6 +70,11 @@ const Sidebar = ({
           text="Unread"
           isActive={activeFilter === "unread"}
           onClick={() => setActiveFilter("unread")}
+        />
+        <TabButton
+          text="Pending"
+          isActive={activeFilter === "pending"}
+          onClick={() => setActiveFilter("pending")}
         />
       </div>
 

@@ -127,7 +127,8 @@ const ChatRoom = () => {
     );
   };
 
-  const { chatId: urlChatId, inviteLink } = useParams();
+  const { chatId } = useParams();
+  
   const navigate = useNavigate();
   //   const [chats, setChats] = useState(
   //     CHATS_DATA.map((chat) => ({
@@ -138,6 +139,7 @@ const ChatRoom = () => {
   //   );
 
   const userId = localStorage.getItem("user_id");
+
   // Start with empty arrays; no dummy data
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -153,62 +155,87 @@ const ChatRoom = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
   const [showJoinRequest, setShowJoinRequest] = useState(false);
-  const [invitedChatDetails, setInvitedChatDetails] = useState({
-    id: 999,
-    name: "Invited Chat Room",
-    avatarColor: "bg-blue-400",
-    avatarText: "I",
-    lastMessage: "You've been invited to this chat",
-    time: "now",
-    unread: false,
-    messages: [],
-    status: "invited",
-  });
+  const [invitedChatDetails, setInvitedChatDetails] = useState({});
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   const [filteredChats, setFilteredChats] = useState(chats);
+
   useEffect(() => {
-    let filtered = [...chats];
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (chat) =>
-          chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (activeFilter === "unread") {
-      filtered = filtered.filter((chat) => chat.unread);
-    }
-
-    setFilteredChats(filtered);
-  }, [chats, activeFilter]);
-
+		const filterChats = async () => {
+			let filtered = [...chats];
+	
+			if (searchTerm) {
+				filtered = filtered.filter(
+					(chat) =>
+						chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+						(chat.lastMessage || "").toLowerCase().includes(searchTerm.toLowerCase())
+				);
+			}
+	
+			if (activeFilter === "unread") {
+				filtered = filtered.filter((chat) => chat.unread);
+			} 
+			else if (activeFilter === "pending") {
+				try {
+					const res = await axios.get(`http://localhost:3000/chatroom/pendingRooms/${userId}`);
+					filtered = res.data?.pendingRooms || [];
+				} 
+				catch (err) {
+					console.error("Failed to fetch pending rooms:", err);
+				}
+			}
+	
+			setFilteredChats(filtered);
+		};
+	
+		filterChats();
+	}, [chats, activeFilter, searchTerm]);
+	
   const messageContainerRef = useRef(null);
 
-  useEffect(() => {
-    if (inviteLink) {
-      const mockInvitedChat = {
-        id: 999,
-        name: "Invited Chat Room",
-        avatarColor: "bg-blue-400",
-        avatarText: "I",
-        lastMessage: "You've been invited to this chat",
-        time: "now",
-        unread: false,
-        messages: [],
-        status: "invited",
-      };
+	useEffect(() => {
+		const checkMembership = async () => {
+			if (chatId) {
+				try {
+					const res = await axios.get(
+						`http://localhost:3000/chatroom/${chatId}/isMember/${userId}`
+					);
 
-      setInvitedChatDetails(mockInvitedChat);
-      setShowJoinRequest(true);
-    } else {
-      setCurrentChatId(chats.length > 0 ? chats[0].id : null);
-    }
-  }, [inviteLink]);
+					console.log('check mem:', res.data, chatId, userId)
+					
+					if (!res.data?.isMember) {
+						const chatRes = await axios.get(`http://localhost:3000/chatroom/${chatId}`)
+						const chatroom = chatRes.data.chatRoom
+
+						const invitedChat = {
+							id: chatId,
+							name: chatroom.name,
+							avatarColor: chatroom.avatar_color,
+							avatarText:  chatroom.avatar_text,
+							lastMessage: chatroom.last_message,
+							time: new Date(),
+							unread: true,
+							messages: [],
+							status: "invited",
+						};
+	
+						setInvitedChatDetails(invitedChat);
+						setShowJoinRequest(true);
+						navigate('/Chat')
+					}
+				} catch (err) {
+					console.error("Failed to check membership:", err);
+				}
+			} else {
+				setCurrentChatId(chats.length > 0 ? chats[0].id : null);
+			}
+		};
+	
+		checkMembership();
+	}, [chatId, userId, chats, navigate]);
+	
 
   // Identify the current chat
   const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
@@ -243,25 +270,30 @@ const ChatRoom = () => {
       }
     };
     fetchChats();
-    setCurrentChatId(urlChatId);
+    setCurrentChatId(chatId);
   }, []);
 
   // Filter chats
-  const getFilteredChats = () => {
-    let filtered = [...chats];
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (chat) =>
-          chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (chat.lastMessage &&
-            chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-    if (activeFilter === "unread") {
-      filtered = filtered.filter((chat) => chat.unread);
-    }
-    return filtered;
-  };
+  // const getFilteredChats = async () => {
+  //   let filtered = [...chats];
+  //   if (searchTerm) {
+  //     filtered = filtered.filter(
+  //       (chat) =>
+  //         chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //         (chat.lastMessage &&
+  //           chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
+  //     );
+  //   }
+  //   if (activeFilter === "unread") {
+  //     filtered = filtered.filter((chat) => chat.unread);
+  //   }
+	// 	else if (activeFilter === "pending") {
+	// 		console.log('broooo')
+	// 		const res = axios.get(`http://localhost:3000/chatroom/pendingRooms/${userId}`);
+	// 		filtered = res.data.pendingRooms
+	// 	}
+  //   return filtered;
+  // };
 
   // Send a new message locally
   const handleSendMessage = () => {
@@ -404,29 +436,44 @@ const ChatRoom = () => {
     }
   };
 
-  const handleJoinRequest = (userName) => {
+  const handleJoinRequest = async (userName) => {
     console.log(
-      `User ${userName} requested to join chat ${invitedChatDetails?.name}`
+      `User ${userId} requested to join chat ${invitedChatDetails?.name}`
     );
 
-    const newChat = {
-      ...invitedChatDetails,
-      id: Date.now(),
-      status: "pending",
-      messages: [
-        {
-          id: Date.now(),
-          content: `You requested to join ${invitedChatDetails.name}. Waiting for approval...`,
-          fromUser: false,
-          sender: "System",
-          senderColor: "bg-gray-400",
-          timestamp: new Date(),
-        },
-      ],
-    };
+		const requestedId = invitedChatDetails.id
 
-    setChats([newChat, ...chats]);
-    setCurrentChatId(newChat.id);
+		// update in backend
+		try {
+			await axios.post(
+				`http://localhost:3000/chatroom/${requestedId}/request`,
+				{
+					userId: userId
+				}
+			)
+		}
+		catch (err) {
+			console.log('Error in updating joining request: ', err.message)
+		}
+
+    // const newChat = {
+    //   ...invitedChatDetails,
+    //   id: Date.now(),
+    //   status: "pending",
+    //   messages: [
+    //     {
+    //       id: Date.now(),
+    //       content: `You requested to join ${invitedChatDetails.name}. Waiting for approval...`,
+    //       fromUser: false,
+    //       sender: userName,
+    //       senderColor: "bg-gray-400",
+    //       timestamp: new Date(),
+    //     },
+    //   ],
+    // };
+
+    // setChats([newChat, ...chats]);
+    // setCurrentChatId(newChat.id);
     setShowJoinRequest(false);
   };
 
@@ -434,7 +481,7 @@ const ChatRoom = () => {
     setShowJoinRequest(false);
 
     if (chats.length > 0) {
-      setCurrentChatId(urlChatId);
+      setCurrentChatId(chatId);
     } else {
       setCurrentChatId(null);
     }
@@ -495,7 +542,7 @@ const ChatRoom = () => {
   }
 
   const renderMainContent = () => {
-    if (!currentChatId || !urlChatId) {
+    if (!currentChatId || !chatId) {
       return <EmptyState />;
     }
 
@@ -542,7 +589,7 @@ const ChatRoom = () => {
 
         {renderMainContent()}
 
-        {urlChatId &&
+        {chatId &&
           showChatInfo &&
           currentChatId &&
           currentChat?.status !== "pending" && (
