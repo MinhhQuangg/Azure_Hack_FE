@@ -19,7 +19,7 @@ import {
 import { languages } from "../../constants";
 
 const MessageBubble = ({ message }) => {
-  console.log(message);
+  // console.log(message);
   return (
     <div
       className={`flex mb-4 ${
