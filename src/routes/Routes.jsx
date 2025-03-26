@@ -12,26 +12,22 @@ import ChatRoom from "../pages/Room";
 import Error from "../pages/Error";
 import { AuthProvider } from "../context/authContext";
 import Help from "../pages/Help";
-import { RequireAuth } from "../auth/RequireAuth";
 
 export const Routes = () => {
   return (
-	<BrowserRouter>
-		<AuthProvider>
-			<RouteComponent>
-			<Route path="/" element={<Home />} />
-			<Route path="/Home" element={<Home />} />
-			<Route path="/Signin" element={<Signin />} />
-			<Route path="/Signup" element={<Signup />} />
-			<Route path="/Help" element={<Help />} />
-			<Route element={<RequireAuth />}>
-				<Route path="/Chat" element={<ChatRoom />} />
-				<Route path="/Chat/:chatId" element={<ChatRoom />} />
-				<Route path="/invite/:inviteId" element={<ChatRoom />} />
-			</Route>
-			<Route path="*" element={<Error />} />
-			</RouteComponent>
-		</AuthProvider>
-	</BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <RouteComponent>
+          <Route path="/" element={<Home />} />
+          <Route path="/Home" element={<Home />} />
+          <Route path="/Signin" element={<Signin />} />
+          <Route path="/Signup" element={<Signup />} />
+          <Route path="/Chat" element={<ChatRoom />} />
+          <Route path="/Chat/:chatId" element={<ChatRoom />} />
+          <Route path="/Help" element={<Help />} />
+          <Route path="*" element={<Error />} />
+        </RouteComponent>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
