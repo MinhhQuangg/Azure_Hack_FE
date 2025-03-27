@@ -151,7 +151,6 @@ const ChatInfo = ({
             createdAt: chatRoom.created_at,
             description: chatRoom.description,
             adminId: chatRoom.admin_id,
-            // inviteLink: `abc.com/${chatRoom.id}`,
             inviteLink: `localhost:5173/Chat/${chatRoom.id}`,
             members: members,
             joinRequests: pendingMembers,

@@ -137,9 +137,55 @@ const ChatRoom = () => {
   const [isPrepending, setIsPrepending] = useState(false);
   const [messagePagination, setMessagePagination] = useState({}); // { [chatId]: { cursor, hasMore } }
 
+  const [showJoinRequest, setShowJoinRequest] = useState(false);
+  const [invitedChatDetails, setInvitedChatDetails] = useState({});
+
   // const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
   const messageContainerRef = useRef(null);
+
+  useEffect(() => {
+    const checkMembership = async () => {
+      if (currentChatId) {
+        try {
+          const res = await axios.get(
+            `http://localhost:3000/chatroom/${currentChatId}/isMember/${userId}`
+          );
+
+          console.log("check mem:", res.data, currentChatId, userId);
+
+          if (!res.data?.isMember) {
+            const chatRes = await axios.get(
+              `http://localhost:3000/chatroom/${currentChatId}`
+            );
+            const chatroom = chatRes.data.chatRoom;
+
+            const invitedChat = {
+              id: currentChatId,
+              name: chatroom.name,
+              avatarColor: chatroom.avatar_color,
+              avatarText: chatroom.avatar_text,
+              lastMessage: chatroom.last_message,
+              time: new Date(),
+              unread: true,
+              messages: [],
+              status: "invited",
+            };
+
+            setInvitedChatDetails(invitedChat);
+            setShowJoinRequest(true);
+            navigate("/Chat");
+          }
+        } catch (err) {
+          console.error("Failed to check membership:", err);
+        }
+      } else {
+        setCurrentChatId(chats.length > 0 ? chats[0].id : null);
+      }
+    };
+
+    checkMembership();
+  }, [currentChatId, userId, chats, navigate]);
 
   // Single socket
   const [socket, setSocket] = useState(null);
@@ -290,7 +336,7 @@ const ChatRoom = () => {
     }
 
     setFilteredChats(filtered);
-  }, [chats, activeFilter]);
+  }, [chats, activeFilter, searchTerm]);
 
   // 4. Send message => POST to the server, but also emit via socket
   const handleSendMessage = async () => {
@@ -652,10 +698,24 @@ const ChatRoom = () => {
   // };
 
   // 11. Handle join request
-  const handleJoinRequest = (userName) => {
+  const handleJoinRequest = async (userName) => {
     console.log(
       `User ${userName} requested to join chat ${invitedChatDetails?.name}`
     );
+
+    const requestedId = invitedChatDetails.id;
+
+    // update in backend
+    try {
+      await axios.post(
+        `http://localhost:3000/chatroom/${requestedId}/request`,
+        {
+          userId: userId,
+        }
+      );
+    } catch (err) {
+      console.log("Error in updating joining request: ", err.message);
+    }
 
     const newChat = {
       ...invitedChatDetails,
@@ -718,6 +778,35 @@ const ChatRoom = () => {
       />
     );
   };
+
+  if (showJoinRequest && invitedChatDetails) {
+    return (
+      <div className="flex flex-col h-screen bg-gray-100">
+        <NavBar />
+        <div className="flex flex-1 overflow-hidden">
+          {showSidebar && (
+            <Sidebar
+              chats={filteredChats}
+              originalChats={chats}
+              setOriginalChats={setChats}
+              currentChatId={currentChatId}
+              onChatClick={handleChatClick}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+              onNewChat={() => setIsNewChatModalOpen(true)}
+            />
+          )}
+          <RequestJoin
+            chatName={invitedChatDetails.name}
+            onJoinRequest={handleJoinRequest}
+            onCancel={handleCancelJoinRequest}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
