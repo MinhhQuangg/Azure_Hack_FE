@@ -79,7 +79,7 @@ const ChatWindow = ({
   const imageInputRef = useRef(null);
   const recognizerRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
-  // const [translatedMessages, setTranslatedMessages] = useState([]);
+  const [translatedMessages, setTranslatedMessages] = useState([]);
 
   // scroll
   useEffect(() => {
@@ -162,50 +162,49 @@ const ChatWindow = ({
     }
   };
 
-  // const translateText = async (text, targetLanguage) => {
-  //   try {
-  //     const response = await fetch(
-  //       `https://api.cognitive.microsofttranslator.com//translate?api-version=3.0&to=${targetLanguage}`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Ocp-Apim-Subscription-Key": import.meta.env.VITE_TRANS_KEY,
-  //           // "7HB3rVe0Q0q91WulZqatlV9uz3JLs2Km8emcQ8wdKWADxHhnsR0lJQQJ99BCACYeBjFXJ3w3AAAbACOGJqVY",
-  //           "Ocp-Apim-Subscription-Region": import.meta.env.VITE_TRANS_REGION,
-  //           //  "eastus",
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify([{ Text: text }]),
-  //       }
-  //     );
-  //     const data = await response.json();
-  //     const translated = data[0].translations[0].text;
-  //     return translated;
-  //   } catch (error) {
-  //     console.error("Translation Error:", error);
-  //   }
-  // };
+  const translateText = async (text, targetLanguage) => {
+    try {
+      const response = await fetch(
+        `https://api.cognitive.microsofttranslator.com//translate?api-version=3.0&to=${targetLanguage}`,
+        {
+          method: "POST",
+          headers: {
+            "Ocp-Apim-Subscription-Key": import.meta.env.VITE_TRANS_KEY,
 
-  // useEffect(() => {
-  //   const translateIncomingMessages = async () => {
-  //     console.log(messages);
-  //     const updatedMessages = await Promise.all(
-  //       messages.map(async (message) => {
-  //         if (message?.language !== language) {
-  //           const translatedContent = await translateText(
-  //             message?.content,
-  //             language
-  //           );
-  //           return { ...message, content: translatedContent };
-  //         }
-  //         return message;
-  //       })
-  //     );
-  //     setTranslatedMessages(updatedMessages);
-  //   };
+            "Ocp-Apim-Subscription-Region": import.meta.env.VITE_TRANS_REGION,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([{ Text: text }]),
+        }
+      );
+      const data = await response.json();
+      const translated = data[0].translations[0].text;
+      return translated;
+    } catch (error) {
+      console.error("Translation Error:", error);
+    }
+  };
 
-  //   translateIncomingMessages();
-  // }, [language, messages]);
+  useEffect(() => {
+    const translateIncomingMessages = async () => {
+      console.log(messages);
+      const updatedMessages = await Promise.all(
+        messages.map(async (message) => {
+          if (message?.language !== language) {
+            const translatedContent = await translateText(
+              message?.content,
+              language
+            );
+            return { ...message, content: translatedContent };
+          }
+          return message;
+        })
+      );
+      setTranslatedMessages(updatedMessages);
+    };
+
+    translateIncomingMessages();
+  }, [language, messages]);
 
   return (
     <div
@@ -257,7 +256,7 @@ const ChatWindow = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
-        {messages.map((message, i) => {
+        {translatedMessages.map((message, i) => {
           const currentDate = new Date(message.created_at);
           const prevDate = i > 0 ? new Date(messages[i - 1].created_at) : null;
 
