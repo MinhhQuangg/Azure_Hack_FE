@@ -1,19 +1,18 @@
-// ChatRoom.jsx
+// Room.jsx
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/chatroom/Sidebar.jsx";
 import ChatWindow from "../components/chatroom/ChatWindow.jsx";
-import { CHATS_DATA, ALL_MESSAGES } from "../components/chatroom/Data.jsx";
 import ChatInfo from "../components/chatroom/ChatInfo.jsx";
 import NavBar from "../components/NavBar.jsx";
 import { FaTimes } from "react-icons/fa";
 import axios from "axios";
+import io from "socket.io-client";
 import { showToastError } from "../components/common/ShowToast";
 import RequestJoin from "../components/chatroom/RequestJoin.jsx";
 import WaitingApproval from "../components/chatroom/WaitingApproval.jsx";
 import { useParams, useNavigate } from "react-router-dom";
 
 const ChatRoom = () => {
-  // Empty state component displayed if no chat is selected
   const EmptyState = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
@@ -36,7 +35,6 @@ const ChatRoom = () => {
     );
   };
 
-  // Modal component for creating a new chat (Chat Name + Description only)
   const NewChatModal = ({ isOpen, onClose, onCreateChat }) => {
     const [chatName, setChatName] = useState("");
     const [description, setDescription] = useState("");
@@ -47,7 +45,6 @@ const ChatRoom = () => {
       e.preventDefault();
       if (!chatName.trim()) return;
 
-      // Create a new chat object locally
       onCreateChat({
         name: chatName,
         description: description,
@@ -57,12 +54,6 @@ const ChatRoom = () => {
       setDescription("");
       onClose();
     };
-
-    const availableUsers = [
-      { id: 1, name: "Alice", avatar: "A", color: "bg-purple-400" },
-      { id: 2, name: "Bob", avatar: "B", color: "bg-green-400" },
-      { id: 3, name: "Charlie", avatar: "C", color: "bg-blue-400" },
-    ];
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -78,7 +69,6 @@ const ChatRoom = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-4">
-            {/* Chat Name Field */}
             <div className="mb-4">
               <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
                 Chat Name
@@ -93,7 +83,6 @@ const ChatRoom = () => {
               />
             </div>
 
-            {/* Description Field (Replaces "Add Users") */}
             <div className="mb-4">
               <label className="font-['Montserrat'] text-[#2C2E30] block text-sm font-bold mb-2">
                 Description
@@ -127,121 +116,174 @@ const ChatRoom = () => {
     );
   };
 
-  const { chatId } = useParams();
-  
+  const { chatId: urlChatId, inviteLink } = useParams();
   const navigate = useNavigate();
-  //   const [chats, setChats] = useState(
-  //     CHATS_DATA.map((chat) => ({
-  //       ...chat,
-  //       messages: ALL_MESSAGES[chat.id] || [],
-  //       status: "active",
-  //     }))
-  //   );
 
   const userId = localStorage.getItem("user_id");
 
-  // Start with empty arrays; no dummy data
+  // Instead of a single [messages], we store a dictionary: { [roomId]: [msg, msg, ...], ... }
+  const [roomMessages, setRoomMessages] = useState({});
   const [chats, setChats] = useState([]);
-  const [messages, setMessages] = useState([]);
-  // No chat selected initially => triggers EmptyState
-  const [currentChatId, setCurrentChatId] = useState(null);
-  // const currentChat = currentChatId
-  //   ? chats.find((chat) => chat.id === currentChatId) || null
-  //   : null;
-
+  const [currentChatId, setCurrentChatId] = useState(urlChatId);
+  const [lastScrollChatId, setLastScrollChatId] = useState(null);
   const [newMessage, setNewMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+
+  // UI states
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showChatInfo, setShowChatInfo] = useState(false);
+  const [isPrepending, setIsPrepending] = useState(false);
+  const [messagePagination, setMessagePagination] = useState({}); // { [chatId]: { cursor, hasMore } }
+
   const [showJoinRequest, setShowJoinRequest] = useState(false);
   const [invitedChatDetails, setInvitedChatDetails] = useState({});
 
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  // const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
-  const [filteredChats, setFilteredChats] = useState(chats);
-
-  useEffect(() => {
-		const filterChats = async () => {
-			let filtered = [...chats];
-	
-			if (searchTerm) {
-				filtered = filtered.filter(
-					(chat) =>
-						chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-						(chat.lastMessage || "").toLowerCase().includes(searchTerm.toLowerCase())
-				);
-			}
-	
-			if (activeFilter === "unread") {
-				filtered = filtered.filter((chat) => chat.unread);
-			} 
-			else if (activeFilter === "pending") {
-				try {
-					const res = await axios.get(`http://localhost:3000/chatroom/pendingRooms/${userId}`);
-					filtered = res.data?.pendingRooms || [];
-				} 
-				catch (err) {
-					console.error("Failed to fetch pending rooms:", err);
-				}
-			}
-	
-			setFilteredChats(filtered);
-		};
-	
-		filterChats();
-	}, [chats, activeFilter, searchTerm]);
-	
   const messageContainerRef = useRef(null);
 
-	useEffect(() => {
-		const checkMembership = async () => {
-			if (chatId) {
-				try {
-					const res = await axios.get(
-						`http://localhost:3000/chatroom/${chatId}/isMember/${userId}`
-					);
+  useEffect(() => {
+    const checkMembership = async () => {
+      if (currentChatId) {
+        try {
+          const res = await axios.get(
+            `http://localhost:3000/chatroom/${currentChatId}/isMember/${userId}`
+          );
 
-					console.log('check mem:', res.data, chatId, userId)
-					
-					if (!res.data?.isMember) {
-						const chatRes = await axios.get(`http://localhost:3000/chatroom/${chatId}`)
-						const chatroom = chatRes.data.chatRoom
+          console.log("check mem:", res.data, currentChatId, userId);
 
-						const invitedChat = {
-							id: chatId,
-							name: chatroom.name,
-							avatarColor: chatroom.avatar_color,
-							avatarText:  chatroom.avatar_text,
-							lastMessage: chatroom.last_message,
-							time: new Date(),
-							unread: true,
-							messages: [],
-							status: "invited",
-						};
-	
-						setInvitedChatDetails(invitedChat);
-						setShowJoinRequest(true);
-						navigate('/Chat')
-					}
-				} catch (err) {
-					console.error("Failed to check membership:", err);
-				}
-			} else {
-				setCurrentChatId(chats.length > 0 ? chats[0].id : null);
-			}
-		};
-	
-		checkMembership();
-	}, [chatId, userId, chats, navigate]);
-	
+          if (!res.data?.isMember) {
+            const chatRes = await axios.get(
+              `http://localhost:3000/chatroom/${currentChatId}`
+            );
+            const chatroom = chatRes.data.chatRoom;
 
-  // Identify the current chat
-  const currentChat = chats.find((chat) => chat.id === currentChatId) || null;
+            const invitedChat = {
+              id: currentChatId,
+              name: chatroom.name,
+              avatarColor: chatroom.avatar_color,
+              avatarText: chatroom.avatar_text,
+              lastMessage: chatroom.last_message,
+              time: new Date(),
+              unread: true,
+              messages: [],
+              status: "invited",
+            };
 
-  // Load all most current chats to side bar
+            setInvitedChatDetails(invitedChat);
+            setShowJoinRequest(true);
+            navigate("/Chat");
+          }
+        } catch (err) {
+          console.error("Failed to check membership:", err);
+        }
+      } else {
+        setCurrentChatId(chats.length > 0 ? chats[0].id : null);
+      }
+    };
 
+    checkMembership();
+  }, [currentChatId, userId, chats, navigate]);
+
+  // Single socket
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const loadInitialMessages = async () => {
+      if (!roomMessages[urlChatId]) {
+        console.log("Enter function fetch initial messages.");
+        console.log(`http://localhost:3000/chatroom/${urlChatId}/messages`);
+
+        try {
+          const res = await axios.get(
+            `http://localhost:3000/chatroom/${urlChatId}/messages`,
+            {
+              params: {
+                cursor: null,
+              },
+            }
+          );
+
+          setRoomMessages((prev) => ({
+            ...prev,
+            // [urlChatId]: res.data.messages,
+            [urlChatId]: res.data.messages
+              .filter((message) => message.chat_id === urlChatId)
+              .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+          }));
+
+          // setRoomMessages((prev) => {
+          //   const existing = prev[urlChatId] || [];
+          //   return {
+          //     ...prev,
+          //     [urlChatId]: [...newMessages, ...existing], // prepend
+          //   };
+          // });
+
+          setMessagePagination((prev) => ({
+            ...prev,
+            [urlChatId]: {
+              cursor: res.data.cursor,
+              hasMore: res.data.hasMore,
+            },
+          }));
+
+          // setIsMessagesLoaded(true);
+        } catch (err) {
+          console.error("Error loading initial messages:", err);
+          showToastError("Failed to load messages");
+        }
+        console.log(11111);
+      }
+      // else {
+      //   setIsMessagesLoaded(true);
+      // }
+    };
+    loadInitialMessages();
+    const container = messageContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight - container.clientHeight;
+    }
+  }, []);
+
+  useEffect(() => {
+    const socketInstance = io("http://localhost:3000", {
+      transports: ["websocket"],
+      auth: { userId: userId },
+    });
+    setSocket(socketInstance);
+
+    return () => socketInstance.disconnect();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!socket || !currentChatId) return;
+    const handleReceiveMessage = (incomingMessage) => {
+      console.log("Received via socket:", incomingMessage);
+      setRoomMessages((prev) => {
+        const existing = prev[currentChatId] || [];
+        return {
+          ...prev,
+          [currentChatId]: [
+            ...existing,
+            { ...incomingMessage, fromUser: false },
+          ].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+        };
+      });
+    };
+    socket.on("receive-message", handleReceiveMessage);
+    return () => {
+      socket.off("receive-message", handleReceiveMessage);
+    };
+  }, [socket, currentChatId]);
+
+  // For the currently selected chat, we show that chat's messages or an empty array
+  const currentChatMessages = roomMessages[currentChatId] || [];
+  const currentChat = chats.find((c) => c.id === currentChatId) || null;
+
+  // 1. Load all chats for the sidebar (no GET for messages, just for chats)
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -251,6 +293,8 @@ const ChatRoom = () => {
         const newChats =
           allChats.data?.chatRooms.map((chat) => chat.chatRoom) || [];
 
+        console.log("Chats from server:", newChats);
+        // Mark unread
         const statuses = await Promise.all(
           newChats.map((chat) =>
             axios.get(
@@ -259,7 +303,6 @@ const ChatRoom = () => {
           )
         );
 
-        // Attach read status to chats
         newChats.forEach((chat, index) => {
           chat.unread = statuses[index].data.unread;
         });
@@ -269,107 +312,86 @@ const ChatRoom = () => {
         showToastError(err.response?.data?.message);
       }
     };
+
     fetchChats();
-    setCurrentChatId(chatId);
-  }, []);
+    setCurrentChatId(urlChatId);
+  }, [userId]);
 
-  // Filter chats
-  // const getFilteredChats = async () => {
-  //   let filtered = [...chats];
-  //   if (searchTerm) {
-  //     filtered = filtered.filter(
-  //       (chat) =>
-  //         chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         (chat.lastMessage &&
-  //           chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()))
-  //     );
-  //   }
-  //   if (activeFilter === "unread") {
-  //     filtered = filtered.filter((chat) => chat.unread);
-  //   }
-	// 	else if (activeFilter === "pending") {
-	// 		console.log('broooo')
-	// 		const res = axios.get(`http://localhost:3000/chatroom/pendingRooms/${userId}`);
-	// 		filtered = res.data.pendingRooms
-	// 	}
-  //   return filtered;
-  // };
+  // 2. Filter chats for sidebar
 
-  // Send a new message locally
-  const handleSendMessage = () => {
+  const [filteredChats, setFilteredChats] = useState(chats);
+  useEffect(() => {
+    let filtered = [...chats];
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (chat) =>
+          chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          chat.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (activeFilter === "unread") {
+      filtered = filtered.filter((chat) => chat.unread);
+    }
+
+    setFilteredChats(filtered);
+  }, [chats, activeFilter, searchTerm]);
+
+  // 4. Send message => POST to the server, but also emit via socket
+  const handleSendMessage = async () => {
+    //console.log("handleSendMessage was called, currentChatId=", currentChatId);
     if (!newMessage.trim() || !currentChatId) return;
 
-    const newMsg = {
-      id: Date.now(),
-      content: newMessage,
-      fromUser: true,
-      timestamp: new Date(),
-    };
-
-    const updatedChats = chats.map((chat) => {
-      if (chat.id === currentChatId) {
-        return {
-          ...chat,
-          messages: [...(chat.messages || []), newMsg],
-          lastMessage: `You: ${newMessage}`,
-          time: "now",
-        };
-      }
-      return chat;
-    });
-
-    setChats(updatedChats);
-    setNewMessage("");
-    setIsTyping(true);
-    const prevChats = updatedChats;
-    setChats(
-      prevChats.map((chat) => {
-        if (chat.id === currentChatId) {
-          const responseMsg = {
-            id: Date.now(),
-            content: `Response from ${chat.name}: Thanks for your message! We'll get back to you shortly.`,
-            fromUser: false,
-            sender: chat.avatarText,
-            senderColor: chat.avatarColor,
-            typing: true,
-          };
-
-          return {
-            ...chat,
-            messages: [...chat.messages, responseMsg],
-          };
-        }
-        return chat;
-      })
-    );
-
-    setTimeout(() => {
-      setIsTyping(false);
-      setChats(
-        prevChats.map((chat) => {
-          if (chat.id === currentChatId) {
-            const responseMsg = {
-              id: Date.now(),
-              content: `Response from ${chat.name}: Thanks for your message! We'll get back to you shortly.`,
-              fromUser: false,
-              sender: chat.avatarText,
-              senderColor: chat.avatarColor,
-              typing: false,
-              timestamp: new Date(),
-            };
-
-            return {
-              ...chat,
-              messages: [...chat.messages, responseMsg],
-            };
-          }
-          return chat;
-        })
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/rooms/${currentChatId}/messages`,
+        { text: newMessage, userId: userId }
       );
-    }, 1500);
+      console.log(response.status, response.data);
+
+      const savedMessage = response.data;
+      savedMessage.fromUser = true;
+      savedMessage.created_at = new Date();
+
+      setRoomMessages((prev) => {
+        const existingArray = prev[currentChatId] || [];
+        return {
+          ...prev,
+          [currentChatId]: [...existingArray, savedMessage].sort(
+            (a, b) => new Date(a.created_at) - new Date(b.created_at)
+          ),
+        };
+      });
+
+      const messageToSend = {
+        content: savedMessage.content,
+        sender: userId || "Unknown",
+        senderColor: savedMessage.senderColor || "#ccc",
+        created_at: new Date(),
+      };
+
+      if (!socket) {
+        console.log("No socket reference, cannot emit!");
+      } else {
+        socket.emit("send-message", messageToSend, currentChatId);
+      }
+
+      setNewMessage("");
+
+      const updated = chats.map((chat) =>
+        chat.id === currentChatId
+          ? { ...chat, lastMessage: `You: ${newMessage}`, time: "now" }
+          : chat
+      );
+      setChats(updated);
+    } catch (error) {
+      console.error(error);
+      showToastError(error.response?.data?.error || "Error sending message");
+    }
   };
 
-  // Create a new chat locally
+  // 5. Create a new chat => POST to the server (no GET for messages)
   const handleCreateChat = async (chatData) => {
     const data = {
       name: chatData.name,
@@ -389,39 +411,67 @@ const ChatRoom = () => {
       if (response.status === 201) {
         const newChat = response.data?.chatroom;
         newChat.unread = true;
-        setChats([newChat, ...chats]);
+        setChats((prev) => [newChat, ...prev]);
         setCurrentChatId(newChat.id);
+
+        // Optionally join the new room
+        if (socket) {
+          socket.emit("joinRoom", newChat.id);
+        }
+
+        // Start with an empty array for the new chat
+        setRoomMessages((prev) => ({
+          ...prev,
+          [newChat.id]: [],
+        }));
       }
     } catch (err) {
       showToastError(err.response?.data?.message);
       console.log(err);
     }
 
-    // Reset messages
-    setMessages([]);
-
-    // On mobile, hide sidebar after selecting a chat
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
 
-  // Auto-scroll messages
+  // 6. Auto-scroll
   useEffect(() => {
-    if (messageContainerRef.current && currentChat?.messages) {
-      messageContainerRef.current.scrollTop =
-        messageContainerRef.current.scrollHeight;
+    const container = messageContainerRef.current;
+    if (!container) return;
+
+    // Check if it's a new chat or initial load
+    const isNewChatOrInitialLoad =
+      currentChatMessages.length > 0 &&
+      (!lastScrollChatId || lastScrollChatId !== currentChatId);
+
+    // Only auto-scroll if we're already near the bottom or it's a new chat
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      100;
+
+    if ((isNearBottom || isNewChatOrInitialLoad) && !isPrepending) {
+      container.scrollTop = container.scrollHeight;
     }
-  }, [currentChat?.messages]);
+  }, [currentChatMessages, isPrepending, currentChatId, lastScrollChatId]);
 
-  // Handle selecting a chat
+  useEffect(() => {
+    const container = messageContainerRef.current;
+    if (container) {
+      // Scroll to the very bottom
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [currentChatId]);
+
+  // 7. Handle selecting a chat
   const handleChatClick = async (chatId) => {
+    setLastScrollChatId(currentChatId);
     setCurrentChatId(chatId);
-
+    // setIsMessagesLoaded(false);
     navigate(`/Chat/${chatId}`);
-
-    setChats(
-      chats.map((chat) =>
+    // Mark as read
+    setChats((prev) =>
+      prev.map((chat) =>
         chat.id === chatId && chat.unread ? { ...chat, unread: false } : chat
       )
     );
@@ -430,63 +480,72 @@ const ChatRoom = () => {
       `http://localhost:3000/chatroom/${chatId}/readStatus/${userId}`
     );
 
+    // Join the room if using Socket for presence
+    if (socket) {
+      socket.emit("joinRoom", chatId);
+    }
+
     // On mobile, hide sidebar after selecting
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
-  };
 
-  const handleJoinRequest = async (userName) => {
-    console.log(
-      `User ${userId} requested to join chat ${invitedChatDetails?.name}`
-    );
+    // Fetch initial messages (if not already loaded)
+    if (!roomMessages[chatId]) {
+      console.log("Enter function fetch initial messages.");
+      console.log(`http://localhost:3000/chatroom/${chatId}/messages`);
 
-		const requestedId = invitedChatDetails.id
+      try {
+        const res = await axios.get(
+          `http://localhost:3000/chatroom/${chatId}/messages`,
+          {
+            params: {
+              cursor: null,
+            },
+          }
+        );
 
-		// update in backend
-		try {
-			await axios.post(
-				`http://localhost:3000/chatroom/${requestedId}/request`,
-				{
-					userId: userId
-				}
-			)
-		}
-		catch (err) {
-			console.log('Error in updating joining request: ', err.message)
-		}
+        setRoomMessages((prev) => ({
+          ...prev,
+          // [chatId]: res.data.messages,
+          [chatId]: res.data.messages
+            .filter((message) => message.chat_id === chatId)
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+        }));
 
-    // const newChat = {
-    //   ...invitedChatDetails,
-    //   id: Date.now(),
-    //   status: "pending",
-    //   messages: [
-    //     {
-    //       id: Date.now(),
-    //       content: `You requested to join ${invitedChatDetails.name}. Waiting for approval...`,
-    //       fromUser: false,
-    //       sender: userName,
-    //       senderColor: "bg-gray-400",
-    //       timestamp: new Date(),
-    //     },
-    //   ],
-    // };
+        // setRoomMessages((prev) => {
+        //   const existing = prev[chatId] || [];
+        //   return {
+        //     ...prev,
+        //     [chatId]: [...newMessages, ...existing], // prepend
+        //   };
+        // });
 
-    // setChats([newChat, ...chats]);
-    // setCurrentChatId(newChat.id);
-    setShowJoinRequest(false);
-  };
+        setMessagePagination((prev) => ({
+          ...prev,
+          [chatId]: {
+            cursor: res.data.cursor,
+            hasMore: res.data.hasMore,
+          },
+        }));
 
-  const handleCancelJoinRequest = () => {
-    setShowJoinRequest(false);
-
-    if (chats.length > 0) {
-      setCurrentChatId(chatId);
-    } else {
-      setCurrentChatId(null);
+        // setIsMessagesLoaded(true);
+      } catch (err) {
+        console.error("Error loading initial messages:", err);
+        showToastError("Failed to load messages");
+      }
+      console.log(11111);
     }
+    const container = messageContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight - container.clientHeight;
+    }
+    // else {
+    //   setIsMessagesLoaded(true);
+    // }
   };
 
+  // 8. Handle resizing
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -508,9 +567,217 @@ const ChatRoom = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [currentChatId]);
 
-  // Toggles
+  // 9. Toggles
   const toggleSidebar = () => setShowSidebar(!showSidebar);
   const toggleChatInfo = () => setShowChatInfo(!showChatInfo);
+
+  // 10. Lazy loading for messages
+
+  const loadMoreMessages = async (chatId) => {
+    console.log(chatId, lastScrollChatId);
+
+    const container = messageContainerRef.current;
+    const initialScrollHeight = container.scrollHeight;
+    const initialScrollTop = container.scrollTop;
+
+    if (chatId !== lastScrollChatId) {
+      setLastScrollChatId(currentChatId);
+      console.log("RIGHT???");
+      return;
+    }
+
+    const { cursor, hasMore } = messagePagination[chatId] || {};
+
+    if (hasMore === false) return;
+
+    setIsPrepending(true);
+
+    try {
+      const res = await axios.get(
+        `http://localhost:3000/chatroom/${chatId}/messages`,
+        {
+          params: { cursor },
+        }
+      );
+
+      const newMessages = res.data.messages.filter(
+        (message) => message.chat_id === chatId
+      );
+      // .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+      setRoomMessages((prev) => {
+        const current = prev[chatId] || [];
+        const combinedMessages = [...newMessages, ...current]
+          .filter(
+            (msg, index, self) =>
+              index === self.findIndex((m) => m.id === msg.id)
+          )
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+        return {
+          ...prev,
+          [chatId]: combinedMessages,
+        };
+      });
+
+      setMessagePagination((prev) => ({
+        ...prev,
+        [chatId]: {
+          cursor: res.data.cursor,
+          hasMore: res.data.hasMore,
+        },
+      }));
+
+      requestAnimationFrame(() => {
+        if (container) {
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop =
+            newScrollHeight - initialScrollHeight + initialScrollTop;
+        }
+      });
+    } catch (err) {
+      console.error("Failed to load older messages:", err);
+      showToastError("Failed to load older messages");
+    } finally {
+      // Reset prepending state
+      setIsPrepending(false);
+    }
+  };
+
+  // const loadMoreMessages = async (chatId) => {
+  //   if (chatId !== currentChatId) {
+  //     return;
+  //   }
+
+  //   const { cursor, hasMore } = messagePagination[chatId] || {};
+  //   if (hasMore === false) return;
+
+  //   setIsPrepending(true);
+
+  //   try {
+  //     const res = await axios.get(
+  //       `http://localhost:3000/chatroom/${chatId}/messages`,
+  //       {
+  //         params: { cursor },
+  //       }
+  //     );
+
+  //     const newMessages = res.data.messages;
+
+  //     // setRoomMessages((prev) => ({
+  //     //   ...prev,
+  //     //   [chatId]: res.data.messages.filter(
+  //     //     (message) => message.chat_id === chatId
+  //     //   ),
+  //     // }));
+
+  //     setRoomMessages((prev) => {
+  //       const current = prev[chatId] || [];
+  //       console.log("current", current);
+  //       console.log("new messages", newMessages);
+  //       console.log("Chat ID FJAKLFJ:", chatId);
+
+  //       return {
+  //         ...prev,
+  //         [chatId]: [...newMessages, ...current],
+  //       };
+  //     });
+
+  //     setMessagePagination((prev) => ({
+  //       ...prev,
+  //       [chatId]: {
+  //         cursor: res.data.cursor,
+  //         hasMore: res.data.hasMore,
+  //       },
+  //     }));
+  //   } catch (err) {
+  //     console.error("Failed to load older messages:", err);
+  //   } finally {
+  //     setIsPrepending(false);
+  //   }
+  // };
+
+  // 11. Handle join request
+  const handleJoinRequest = async (userName) => {
+    console.log(
+      `User ${userName} requested to join chat ${invitedChatDetails?.name}`
+    );
+
+    const requestedId = invitedChatDetails.id;
+
+    // update in backend
+    try {
+      await axios.post(
+        `http://localhost:3000/chatroom/${requestedId}/request`,
+        {
+          userId: userId,
+        }
+      );
+    } catch (err) {
+      console.log("Error in updating joining request: ", err.message);
+    }
+
+    const newChat = {
+      ...invitedChatDetails,
+      id: Date.now(),
+      status: "pending",
+      messages: [
+        {
+          id: Date.now(),
+          content: `You requested to join ${invitedChatDetails.name}. Waiting for approval...`,
+          fromUser: false,
+          sender: "System",
+          senderColor: "bg-gray-400",
+          created_at: new Date(),
+        },
+      ],
+    };
+
+    setChats([newChat, ...chats]);
+    setCurrentChatId(newChat.id);
+    setShowJoinRequest(false);
+  };
+
+  // 12. Handle cancel join request
+  const handleCancelJoinRequest = () => {
+    setShowJoinRequest(false);
+
+    if (chats.length > 0) {
+      setCurrentChatId(urlChatId);
+    } else {
+      setCurrentChatId(null);
+    }
+  };
+
+  // 13. Render main content: ChatWindow
+  const renderMainContent = () => {
+    if (!currentChatId || !urlChatId) {
+      return <EmptyState />;
+    }
+
+    if (currentChat?.status === "pending") {
+      return <WaitingApproval chatName={currentChat.name} />;
+    }
+
+    return (
+      <ChatWindow
+        // messages={currentChat?.messages || []}
+        messages={roomMessages[currentChatId] || []}
+        // isTyping={isTyping}
+        currentChat={currentChat}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        onSendMessage={handleSendMessage}
+        messageContainerRef={messageContainerRef}
+        toggleSidebar={toggleSidebar}
+        toggleChatInfo={toggleChatInfo}
+        showSidebar={showSidebar}
+        showChatInfo={showChatInfo}
+        onLoadMoreMessages={loadMoreMessages}
+        currentUserId={userId}
+      />
+    );
+  };
 
   if (showJoinRequest && invitedChatDetails) {
     return (
@@ -541,32 +808,6 @@ const ChatRoom = () => {
     );
   }
 
-  const renderMainContent = () => {
-    if (!currentChatId || !chatId) {
-      return <EmptyState />;
-    }
-
-    if (currentChat?.status === "pending") {
-      return <WaitingApproval chatName={currentChat.name} />;
-    }
-
-    return (
-      <ChatWindow
-        messages={currentChat?.messages || []}
-        isTyping={isTyping}
-        currentChat={currentChat}
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        onSendMessage={handleSendMessage}
-        messageContainerRef={messageContainerRef}
-        toggleSidebar={toggleSidebar}
-        toggleChatInfo={toggleChatInfo}
-        showSidebar={showSidebar}
-        showChatInfo={showChatInfo}
-      />
-    );
-  };
-
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <NavBar />
@@ -589,7 +830,7 @@ const ChatRoom = () => {
 
         {renderMainContent()}
 
-        {chatId &&
+        {urlChatId &&
           showChatInfo &&
           currentChatId &&
           currentChat?.status !== "pending" && (

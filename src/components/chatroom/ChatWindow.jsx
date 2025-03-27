@@ -18,15 +18,14 @@ import {
 } from "react-icons/fa";
 import { languages } from "../../constants";
 
-const MessageBubble = ({ message }) => {
-  console.log(message);
+const MessageBubble = ({ message, currentUserId, currentChat }) => {
   return (
     <div
       className={`flex mb-4 ${
-        message?.fromUser ? "justify-end" : "justify-start"
+        message?.created_by === currentUserId ? "justify-end" : "justify-start"
       }`}
     >
-      {!message.fromUser && (
+      {!(message.created_by === currentUserId) && (
         <div className="mr-2">
           <AvatarPerson person={message?.sender} size="sm" />
         </div>
@@ -36,16 +35,17 @@ const MessageBubble = ({ message }) => {
           {message?.sender?.given_name}
         </div>
         <div
-          className={`font-['Inter'] rounded-lg p-3 inline-block max-w-md ${
-            message.fromUser
+          className={`font-['Inter'] rounded-lg p-3 inline-block max-w-md break-words whitespace-normal ${
+            message.created_by === currentUserId
               ? "bg-yellow-300 text-black"
-              : "bg-gray-200 text-black"
+              : // ? currentChat.avatar_color
+                "bg-gray-200 text-black"
           }`}
         >
           {message?.content}
           <div className="font-['Inter'] text-xs text-[#65686C] mt-1 text-right">
-            {message?.timestamp
-              ? new Date(message?.timestamp).toLocaleTimeString([], {
+            {message?.created_at
+              ? new Date(message?.created_at).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })
@@ -69,6 +69,8 @@ const ChatWindow = ({
   showChatInfo,
   onFileUpload,
   onImageUpload,
+  onLoadMoreMessages,
+  currentUserId,
 }) => {
   const [language, setLanguage] = useState("en");
   const speechKey = import.meta.env.VITE_SPEECH_KEY;
@@ -78,6 +80,21 @@ const ChatWindow = ({
   const recognizerRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   // const [translatedMessages, setTranslatedMessages] = useState([]);
+
+  // scroll
+  useEffect(() => {
+    const container = messageContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (container.scrollTop < 100 && currentChat?.id) {
+        onLoadMoreMessages(currentChat.id);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [currentChat, onLoadMoreMessages]);
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -240,12 +257,35 @@ const ChatWindow = ({
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto" ref={messageContainerRef}>
-        {
-          // translatedMessages
-          messages.map((message, i) => (
-            <MessageBubble key={i} message={message} />
-          ))
-        }
+        {messages.map((message, i) => {
+          const currentDate = new Date(message.created_at);
+          const prevDate = i > 0 ? new Date(messages[i - 1].created_at) : null;
+
+          const shouldShowDateSeparator =
+            i === 0 ||
+            currentDate.getFullYear() !== prevDate.getFullYear() ||
+            currentDate.getMonth() !== prevDate.getMonth() ||
+            currentDate.getDate() !== prevDate.getDate();
+
+          return (
+            <>
+              {shouldShowDateSeparator && (
+                <div className="font-['Inter'] text-xs font-semibold flex justify-center items-center mb-4">
+                  {currentDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </div>
+              )}
+              <MessageBubble
+                message={message}
+                currentUserId={currentUserId}
+                currentChat={currentChat}
+              />
+            </>
+          );
+        })}
       </div>
 
       <input

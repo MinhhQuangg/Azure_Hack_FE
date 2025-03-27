@@ -35,7 +35,7 @@ const Sidebar = ({
   
   return (
     <div
-      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-72 border-r bg-white flex flex-col`}
+      className={`xl:pt-18 lg:pt-16 md:pt-12 sm:pt-8 pt-6 mt-10 lg:mt-2 w-80 border-r bg-white flex flex-col`}
     >
       {/* Sidebar Header */}
       <div className="p-4 border-b flex justify-between items-center">
@@ -92,7 +92,7 @@ const Sidebar = ({
               onClick={() => onChatClick(chat.id)}
             >
               <AvatarChat color={chat.avatar_color} text={chat.avatar_text} />
-              <div className="ml-3 flex-1">
+              <div className="ml-3">
                 <div className="flex justify-between">
                   <span className="font-['Montserrat'] font-semibold">
                     {chat.name}
@@ -101,7 +101,7 @@ const Sidebar = ({
                     {showTime(chat.updated_at)}
                   </span>
                 </div>
-                <p className="font-['Inter'] text-[#65686C] text-sm truncate">
+                <p className="font-['Inter'] text-[#65686C] text-sm truncate w-[220px] overflow-hidden">
                   {chat.last_message}
                 </p>
               </div>
