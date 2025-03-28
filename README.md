@@ -37,7 +37,6 @@ The app uses a Client-Server architecture, with WebSocket (Socket.IO) handling r
 ## What We Learned
 - How to work with Azure Cognitive Services (Translation & Speech APIs).
 - Setting up OAuth with secure session handling using JWT.
-- Deploying apps on Azure with Docker containers.
 - Collaborative full-stack development using GitHub and Copilot.
 - Handling WebSocket communication for real-time updates.
 
@@ -47,6 +46,7 @@ The app uses a Client-Server architecture, with WebSocket (Socket.IO) handling r
 - Improve testing coverage and CI/CD pipeline.
 - Add analytics to understand language usage and user behavior.
 - Explore additional security enhancements and performance optimizations.
+- Deployment on Azure with Docker containers.
 
 ## Built With
 - Azure (Azure AI Services)
