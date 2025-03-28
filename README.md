@@ -56,4 +56,31 @@ The app uses a Client-Server architecture, with WebSocket (Socket.IO) handling r
 
 ## Try It Out
 - [Live Demo](https://www.youtube.com/watch?v=Q3Jx4viHm-g)
+- [Backend Demo](#)
 - [Figma Design](https://www.figma.com/design/ASHnFz7S1Fb0QeD3OFd9yf/Azure-AI-Hackathon?node-id=0-1&p=f&t=VsNwiJKGRJSAzFw0-0)
+
+## Running the App
+To run the app locally, create a folder in your local device and clone the Frontend repository with:
+
+```
+git clone https://github.com/MinhhQuangg/Azure_Hack_FE.git
+```
+
+Next, create a `.env` file in the Frontend root directory and add the following environment variables:
+
+```
+REACT_APP_GOOGLE_CLIENT_ID=<YOUR_GOOGLE_CLIENT_ID>
+VITE_SPEECH_REGION=eastus
+VITE_EMAILJS_PUBLIC_KEY=<YOUR_EMAILJS_PUBLIC_KEY>
+VITE_EMAILJS_SERVICE_ID=<YOUR_EMAILJS_SERVICE_ID>
+VITE_EMAILJS_TEMPLATE_ID=<YOUR_EMAILJS_TEMPLATE_ID>
+VITE_TRANS_KEY=<YOUR_TRANS_KEY>
+VITE_TRANS_REGION=eastus
+```
+
+After setting up the environment variables, install dependencies and start the development server:
+
+```
+npm install
+npm run dev
+```
