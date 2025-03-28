@@ -7,6 +7,7 @@ Chatlas is inspired by the growing need for seamless communication in a globaliz
 Chatlas is a real-time group chat web application that automatically translates messages into the preferred language of each participant. Users can create or join chat rooms via unique invitation links and communicate freely, regardless of the language they use.
 
 ### Key Features
+- **Real-Time Messaging**: Powered by WebSockets (Socket.IO) for instant communication.
 - **Auto-Translation**: Messages are translated in real time using Azure AI Translator to match the recipient's language preference.
 - **Speech-to-Text**: Users can convert their voice to text using Azure Speech Service.
 - **Secure Authentication**: Sign-in and sign-up with Google OAuth, using JWT for session handling.
@@ -48,24 +49,26 @@ The app uses a Client-Server architecture, with WebSocket (Socket.IO) handling r
 - Explore additional security enhancements and performance optimizations.
 
 ## Built With
-- Azure
+- Azure (Azure AI Services)
 - Express.js
 - Node.js
 - React
-- WebSocket
+- WebSocket (Socket.IO)
+- PostgreSQL
 
 ## Try It Out
 - [Live Demo](https://www.youtube.com/watch?v=Q3Jx4viHm-g)
 - [Figma Design](https://www.figma.com/design/ASHnFz7S1Fb0QeD3OFd9yf/Azure-AI-Hackathon?node-id=0-1&p=f&t=VsNwiJKGRJSAzFw0-0)
 
 ## Running the App
-To run the app locally, first navigate to your desired directory and clone the frontend repository:
+To run the app locally, follow these steps:
+**1. Navigate to your desired directory and clone the frontend repository**
 
 ```
 git clone https://github.com/MinhhQuangg/Azure_Hack_FE.git
 ```
 
-Next, create a `.env` file in the root directory and add the following environment variables:
+**2. Create a `.env` file in the root directory and add the following environment variables**
 
 ```
 REACT_APP_GOOGLE_CLIENT_ID=<YOUR_GOOGLE_CLIENT_ID>
@@ -77,7 +80,7 @@ VITE_TRANS_KEY=<YOUR_TRANS_KEY>
 VITE_TRANS_REGION=eastus
 ```
 
-Then, install dependencies and start the development server:
+**3. Install dependencies and start the development server**
 
 ```
 npm install
@@ -85,8 +88,7 @@ npm run dev
 ```
 
 ## Connect with Backend to Run the Full App:
-### [Backend Repository](https://github.com/MinhhQuangg/Azure_App_BE)
-Follow the instructions in this repository to setup Backend.
+To run Chatlas fully, set up the frontend by following instructions in the **[Backend Repository](https://github.com/MinhhQuangg/Azure_App_BE)**.
 
 ## Note
 Ensure you have Node.js installed before running the commands.
