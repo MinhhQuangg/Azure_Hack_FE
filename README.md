@@ -86,5 +86,7 @@ npm run dev
 
 ## Connect with Backend to run the full app:
 ### [Backend Repository](https://github.com/MinhhQuangg/Azure_App_BE)
+- Follow the instructions in this repository to setup Backend.
 
-**Note**: Ensure you have Node.js installed before running the commands.
+## Note
+Ensure you have Node.js installed before running the commands.
