@@ -56,4 +56,4 @@ The app uses a Client-Server architecture, with WebSocket (Socket.IO) handling r
 
 ## Try It Out
 - [Live Demo](https://www.youtube.com/watch?v=Q3Jx4viHm-g)
-- [Figma Design]([www.figma.com](https://www.figma.com/design/ASHnFz7S1Fb0QeD3OFd9yf/Azure-AI-Hackathon?node-id=0-1&p=f&t=VsNwiJKGRJSAzFw0-0))
+- [Figma Design](https://www.figma.com/design/ASHnFz7S1Fb0QeD3OFd9yf/Azure-AI-Hackathon?node-id=0-1&p=f&t=VsNwiJKGRJSAzFw0-0)
